@@ -1,0 +1,662 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.mensaje {
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 5px;
+    font-weight: 500;
+    text-align: center;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    max-width: 400px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.mensaje.exito {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+
+.mensaje.error {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+
+.container {
+    background: white;
+    border-radius: 25px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    width: 900px;
+    height: 600px;
+    position: relative;
+    display: flex;
+}
+
+.form-container {
+    position: absolute;
+    left: 0;
+    width: 50%;
+    height: 100%;
+    padding: 60px 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: all 0.6s ease;
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.form-content {
+    max-width: 350px;
+    width: 100%;
+}
+
+.form-header {
+    text-align: left;
+    margin-bottom: 40px;
+}
+
+.form-inputs {
+    width: 100%;
+}
+
+.form-container h2 {
+    font-size: 2.5rem;
+    text-align: center;
+    font-weight: 700;
+    color: #000000;
+    margin-bottom: 10px;
+}
+
+.form-container p {
+    color: #000000;
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+}
+
+.input-group {
+    position: relative;
+    margin-bottom: 25px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+}
+
+.input-group input {
+    width: 100%;
+    height: 100%;
+    padding: 15px 50px 15px 20px;
+    border: 1px solid #000000;
+    border-radius: 10px;
+    font-size: 1rem;
+    background: transparent;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.input-group input::placeholder{
+    color: #000000;
+}
+
+.input-group input:focus {
+    border-color: #2727F5;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.input-group i {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #000000;
+    font-size: 1.1rem;
+}
+
+.forgot-password {
+    text-align: center;
+    margin: 0 0 35px 0;
+    height: 20px;
+    display: block;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.forgot-password a {
+    color: #000000;
+    font-weight: bold;
+    text-decoration: none;
+    font-size: 0.85rem;
+}
+
+.forgot-password a:hover {
+    color: #0004FF;
+}
+
+/* Espaciador para el registro que simula el forgot password */
+.register-spacer {
+    height: 20px;
+    margin: 0 0 25px 0;
+}
+
+.btn-primary {
+    width: 100%;
+    height: 50px;
+    padding: 15px;
+    background: transparent;
+    color: rgb(0, 0, 0);
+    border: 1px solid #000000;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 25px;
+}
+
+.btn-primary:hover {
+    background: #000000;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.social-login {
+    text-align: center;
+    height: 100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.social-login p {
+    color: #000000;
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+    margin-top: 0;
+}
+
+.social-icons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.social-icons a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 45px;
+  height: 45px;
+  border: 1px solid #000000;
+  border-radius: 8px;
+  color: #000000;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-size: 1.2rem;
+}
+
+.social-icons a:hover {
+  background: #000000;
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* 👇 Este bloque hace que el icono cambie de color también */
+.social-icons a i {
+  color:;
+  transition: color 0.3s ease;
+}
+
+
+.panel {
+    position: absolute;
+    right: 0;
+    width: 50%;
+    height: 100%;
+   background: linear-gradient(155deg, #2727F5 50%, #ADADAD 50%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: white;
+    padding: 50px;
+    clip-path: ellipse(150% 100% at 100% 50%);
+    transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: 1;
+}
+
+.panel-content {
+    transition: all 0.5s ease;
+    transform: scale(1);
+    opacity: 1;
+}
+
+.panel-content.fade-out {
+    opacity: 0;
+    transform: scale(0.9);
+}
+
+.panel h1 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    animation: slideInFromLeft 0.6s ease-out;
+}
+
+.panel p {
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+    font-weight: bold;
+    opacity: 0.9;
+    animation: slideInFromLeft 0.6s ease-out 0.2s both;
+    color: white;
+}
+
+.btn-ghost {
+    padding: 20px 25px  ;
+    background: transparent;
+    color: white;
+    border: 2px solid white;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    text-decoration: none;
+    display: inline-block;
+    animation: slideInFromLeft 0.6s ease-out 0.4s both;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-ghost::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn-ghost:hover::before {
+    left: 100%;
+}
+
+.btn-ghost:hover {
+    background: white;
+    color: #000000;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+/* Animaciones keyframes */
+@keyframes slideInFromLeft {
+    0% {
+        opacity: 0;
+        transform: translateX(-50px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInFromRight {
+    0% {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Estados para alternar */
+.container.register-mode .panel {
+    left: 0;
+    right: auto;
+    clip-path: ellipse(150% 100% at 0% 50%);
+}
+
+.container.register-mode .form-container {
+    left: 50%;
+}
+
+.form-container.register {
+    opacity: 0;
+    pointer-events: none;
+    left: 50%;
+}
+
+.container.register-mode .form-container.login {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.container.register-mode .form-container.register {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Animaciones para los inputs */
+.input-group {
+    animation: fadeInUp 0.6s ease-out both;
+}
+
+.input-group:nth-child(1) { animation-delay: 0.1s; }
+.input-group:nth-child(2) { animation-delay: 0.2s; }
+.input-group:nth-child(3) { animation-delay: 0.3s; }
+
+.btn-primary {
+    animation: fadeInUp 0.6s ease-out 0.4s both;
+}
+
+.social-login {
+    animation: fadeInUp 0.6s ease-out 0.5s both;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+        width: 100%;
+        max-width: 400px;
+        height: auto;
+    }
+
+    .panel {
+        clip-path: none;
+        order: 1;
+        padding: 30px;
+    }
+
+    .form-container {
+        order: 2;
+        padding: 40px 30px;
+    }
+
+    .container.register-mode .panel {
+        clip-path: none;
+        order: 1;
+    }
+
+    .container.register-mode .form-container {
+        order: 2;
+    }
+}
+
+/* ============================================
+   🌙 THEME TOGGLE - MODO OSCURO
+   ============================================ */
+
+/* Variables CSS para el tema */
+:root {
+    --bg-body: white;
+    --bg-container: white;
+    --text-primary: #000000;
+    --text-secondary: #000000;
+    --border-color: #000000;
+    --input-bg: transparent;
+    --gradient-1: #2727F5;
+    --gradient-2: #ADADAD;
+    --btn-hover-bg: #000000;
+    --btn-hover-text: white;
+}
+
+[data-theme="dark"] {
+    --bg-body: #000000;
+    --bg-container: #2d2d2d;
+    --text-primary: #ffffff;
+    --text-secondary-input: #000000;
+    --text-secondary: #ffffff;
+    --border-color: #555555;
+    --input-bg: #3a3a3a;
+    --gradient-1: #1a1af5;
+    --gradient-2: #4a4a4a;
+    --btn-hover-bg: #ffffff;
+    --btn-hover-text: #000000;
+}
+
+/* Aplicar variables */
+body {
+    background: var(--bg-body) !important;
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 10000;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #e2e8f0;
+    padding: 10px 16px;
+    border-radius: 50px;
+    box-shadow: 8px 8px 16px #b8bcc4, -8px -8px 16px #ffffff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+/* Modo Oscuro */
+[data-theme="dark"] .theme-toggle {
+    background: #1e293b;
+    box-shadow: 8px 8px 16px #0f172a, -8px -8px 16px #2d3a52;
+}
+
+/* Hover Effect */
+.theme-toggle:hover {
+    box-shadow: 6px 6px 12px #b8bcc4, -6px -6px 12px #ffffff;
+}
+
+[data-theme="dark"] .theme-toggle:hover {
+    box-shadow: 6px 6px 12px #0f172a, -6px -6px 12px #2d3a52;
+}
+
+/* Active/Pressed Effect */
+.theme-toggle:active {
+    box-shadow: inset 4px 4px 8px #b8bcc4, inset -4px -4px 8px #ffffff;
+}
+
+[data-theme="dark"] .theme-toggle:active {
+    box-shadow: inset 4px 4px 8px #0f172a, inset -4px -4px 8px #2d3a52;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    background: #cbd5e1;
+    border-radius: 50px;
+    box-shadow: inset 4px 4px 8px #9ca3af, inset -4px -4px 8px #f1f5f9;
+    transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .toggle-switch {
+    background: #0f172a;
+    box-shadow: inset 4px 4px 8px #020617, inset -4px -4px 8px #1e293b;
+}
+
+/* Toggle Switch - Active State */
+[data-theme="dark"] .toggle-switch {
+    background: #2727F5;
+    box-shadow: inset 4px 4px 8px #1a1ab8, inset -4px -4px 8px #3434ff;
+}
+
+/* Toggle Ball */
+.toggle-switch::before {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: white;
+    top: 3px;
+    left: 3px;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .toggle-switch::before {
+    left: 23px;
+    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* Theme Icons */
+.theme-icon {
+    font-size: 16px;
+    color: #64748b;
+    transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .theme-icon {
+    color: #94a3b8;
+}
+
+/* Active Icon */
+.theme-icon.active {
+    color: #2727F5;
+    transform: scale(1.1);
+}
+
+[data-theme="dark"] .theme-icon.active {
+    color: #60a5fa;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .theme-toggle {
+        top: 15px;
+        left: 15px;
+        padding: 8px 12px;
+        gap: 8px;
+    }
+
+    .toggle-switch {
+        width: 40px;
+        height: 22px;
+    }
+
+    .toggle-switch::before {
+        width: 16px;
+        height: 16px;
+    }
+
+    [data-theme="dark"] .toggle-switch::before {
+        left: 21px;
+    }
+
+    .theme-icon {
+        font-size: 14px;
+    }
+}
+
+/* Aplicar tema oscuro */
+.container {
+    background: var(--bg-container) !important;
+}
+
+.form-container h2 {
+    color: var(--text-primary) !important;
+}
+
+.form-container p {
+    color: var(--text-secondary) !important;
+}
+
+.input-group input {
+    background: var(--input-bg) !important;
+    color: var(--text-secondary-input) !important;
+    border-color: var(--border-color) !important;
+}
+
+.input-group input::placeholder {
+    color: var(--text-secondary) !important;
+}
+
+.input-group i {
+    color: var(--text-secondary) !important;
+}
+
+.btn-primary {
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+}
+
+.btn-primary:hover {
+    background: var(--btn-hover-bg) !important;
+    color: var(--btn-hover-text) !important;
+}
+
+.social-login p {
+    color: var(--text-secondary) !important;
+}
+
+.social-icons a {
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .social-icons a:hover {
+    background: white !important;
+    color: #000000 !important;
+}
+
+.forgot-password a {
+    color: var(--text-primary) !important;
+}
+
+.panel {
+    background: linear-gradient(155deg, var(--gradient-1) 50%, var(--gradient-2) 50%) !important;
+}
+
+[data-theme="dark"] .mensaje.exito {
+    background-color: #1e4620 !important;
+    border-color: #2d5a2e !important;
+    color: #9df39f !important;
+}
+
+[data-theme="dark"] .mensaje.error {
+    background-color: #4d1f1f !important;
+    border-color: #6b2828 !important;
+    color: #f5a3a3 !important;
+}

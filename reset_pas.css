@@ -1,0 +1,149 @@
+ @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+      * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }  
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }   
+ .recovery-container {
+            max-width: 450px;
+            margin: 100px auto;
+            padding: 40px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .recovery-icon {
+        font-size: 35px; /* Tamaño del ícono */
+        color: rgb(255, 255, 255); /* Color del ícono */
+        background-color: #000000; /* Fondo del círculo */
+        width: 70px; /* Ancho fijo */
+        height: 70px; /* Alto fijo (igual al ancho = círculo perfecto) */
+        border-radius: 50%; /* Hace el círculo */
+        display: flex; /* Centrado */
+        justify-content: center;
+        align-items: center;
+        margin: 0 auto 20px auto; /* Centrado y margen inferior */
+        transition: transform 0.3s ease;
+        }
+        .recovery-icon:hover {
+            transform: scale(1.1); /* Efecto de zoom al pasar el mouse */
+            color: #0008FF;
+        }
+        
+        .recovery-container h2 {
+            color: #0008FF;
+            margin-bottom: 10px;
+        }
+        
+        .recovery-container p {
+            color: #000000;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .input-group {
+  position: relative;
+  width: 100%;
+}
+
+.input-group input {
+  width: 100%;
+  padding:  12px ; /* espacio extra a la derecha para el icono */
+  border-radius: 8px;
+  margin: auto 10px 20px 0;
+  border: 1px solid #000000;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+}
+
+.input-group i {
+  position: absolute;
+  right: 12px; /* lo coloca al final del input */
+  top: 35%;
+  transform: translateY(-50%);
+  color: #000000;
+  font-size: 16px;
+  pointer-events: none; /* evita que el ícono bloquee clics en el input */
+}
+
+        .input-group input::placeholder {
+            color: #000000;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            color: rgb(0, 0, 0);
+            border: 1px solid #000000;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            background: #000000;
+            color: white;
+        }
+        
+        .back-login {
+            margin-top: 20px;
+        }
+        
+        .back-login a {
+            color: #0008FF;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .back-login a:hover {
+            color: #000000;
+        }
+        .mensaje {
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            font-weight: 500;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            animation: slideDown 0.3s ease;
+        }
+        .mensaje.error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .mensaje.exito {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
