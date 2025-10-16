@@ -443,12 +443,13 @@ body {
     --bg-body: #000000;
     --bg-container: #2d2d2d;
     --text-primary: #ffffff;
+    --text-secondary: #000000;
     --text-secondary-input: #000000;
-    --text-secondary: #ffffff;
+    --text-secondary: #000000;
     --border-color: #555555;
     --input-bg: #3a3a3a;
-    --gradient-1: #1a1af5;
-    --gradient-2: #4a4a4a;
+    --gradient-1: #ffffff;
+    --gradient-2: #5e5e5e;
     --btn-hover-bg: #ffffff;
     --btn-hover-text: #000000;
 }
@@ -600,7 +601,7 @@ body {
 }
 
 .form-container p {
-    color: var(--text-secondary) !important;
+    color: var(--text-primary) !important;
 }
 
 .input-group input {
@@ -642,11 +643,18 @@ body {
 }
 
 .forgot-password a {
-    color: var(--text-primary) !important;
+    color: var(--text-secondary) !important;
+}
+
+.forgot-password a:hover {
+    color: #ffffff !important;
 }
 
 .panel {
     background: linear-gradient(155deg, var(--gradient-1) 50%, var(--gradient-2) 50%) !important;
+}
+.panel-content h1, .panel-content p, .btn-ghost {
+    color: var(--text-secondary) !important;
 }
 
 [data-theme="dark"] .mensaje.exito {
