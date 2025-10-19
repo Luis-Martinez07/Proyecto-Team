@@ -152,74 +152,86 @@ if(strlen($iniciales) == 0) {
 
     <button class="mobile-menu-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars-staggered"></i></button>
 
-    <div class="dashboard-container">
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <div class="logo">
-                    <div class="logo-text">
-                        <h2>SENA</h2>
-                        <p>Sistema de Gestión Académica</p>
-                    </div>
-                </div>
+    <aside class="sidebar" id="sidebar">
+    <!-- Header con Avatar y Nombre -->
+    <div class="sidebar-header">
+        <div class="user-profile-header">
+            <div class="user-avatar-header"><?php echo $iniciales; ?></div>
+            <div class="user-info-header">
+                <div class="user-name-header"><?php echo htmlspecialchars($usuario_nombre); ?></div>
+                <div class="user-role-header">Coordinador</div>
             </div>
+        </div>
+    </div>
 
-            <nav class="sidebar-nav">
-                <div class="nav-section-title">MENÚ PRINCIPAL</div>
-                
-                <div class="nav-item active" onclick="showSection('dashboard')">
-                    <span class="nav-icon"><i class="fa-solid fa-house-user"></i></span>
-                    <span>Dashboard</span>
-                </div>
-                
-                <div class="nav-item" onclick="showSection('schedules')">
-                    <span class="nav-icon"><i class="fa-regular fa-calendar-plus"></i></span>
-                    <span>Crear Horarios</span>
-                </div>
 
-                <div class="divide"></div>
+    <!-- Navegación Principal -->
+    <nav class="sidebar-nav">
+        <div class="nav-item active" onclick="showSection('dashboard')">
+            <span class="nav-icon"><i class="fa-solid fa-house"></i></span>
+            <span>Dashboard</span>
+        </div>
+        
+        <div class="nav-item" onclick="showSection('schedules')">
+            <span class="nav-icon"><i class="fa-regular fa-calendar"></i></span>
+            <span>Horarios</span>
+        </div>
 
-                <div class="nav-item" onclick="showSection('instructor')">
-                    <span class="nav-icon"><i class="fa-solid fa-users"></i></span>
-                    <span>Instructores</span>
-                    <span class="nav-badge" id="instructorBadge">0</span>
-                </div>
-                
-                <div class="nav-item" onclick="showSection('environment')">
-                    <span class="nav-icon"><i class="fa-solid fa-building"></i></span>
-                    <span>Ambientes</span>
-                    <span class="nav-badge" id="ambienceBadge">0</span>
-                </div>
-            </nav>
-            
-            <div class="nav-item theme-toggle" id="theme-toggle" title="Cambiar Tema">
-                <i class="fas fa-moon" id="theme-icon"></i>
-                <span class="theme-label">Tema</span>
+        <div class="nav-item" onclick="showSection('instructor')">
+            <span class="nav-icon"><i class="fa-solid fa-users"></i></span>
+            <span>Instructores</span>
+            <span class="nav-badge" id="instructorBadge">0</span>
+        </div>
+        
+        <div class="nav-item" onclick="showSection('environment')">
+            <span class="nav-icon"><i class="fa-solid fa-building"></i></span>
+            <span>Ambientes</span>
+            <span class="nav-badge" id="ambienceBadge">0</span>
+        </div>
+
+
+    </nav>
+
+    <!-- Footer del Sidebar -->
+    <div class="sidebar-footer">
+        <div class="divide"></div>
+
+        <!-- Dropdown de Usuario -->
+        <div class="nav-dropdown-container">
+            <div class="nav-dropdown-toggle" onclick="toggleDropdown()">
+                <span class="nav-icon"><i class="fa-solid fa-user-circle"></i></span>
+                <span>Mi Cuenta</span>
+                <i class="fas fa-chevron-down dropdown-arrow"></i>
             </div>
-            
-            <div class="divide"></div>
-
-           <a href="cambiar_password.php" class="nav-item" style="text-decoration: none; color: inherit;">
-                <span class="nav-icon"><i class="fa-solid fa-user-lock"></i></span>
-                <span>Cambiar Contraseña</span>
-            </a>
-
-            <a href="javascript:void(0)" class="nav-item" onclick="logout()" style="text-decoration: none; color: inherit;">
-                <span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span>
-                <span>Cerrar Sesión</span>
-            </a>
-
-            <!-- Perfil del usuario -->
-            <div class="user-profile-sidebar">
-                <div class="user-profile-content">
-                    <div class="user-avatar-sidebar"><?php echo $iniciales; ?></div>
-                    <div class="user-info-sidebar">
-                        <div class="user-name-sidebar"><?php echo htmlspecialchars($usuario_nombre); ?></div>
-                        <div class="user-email-sidebar"><?php echo htmlspecialchars($usuario_email); ?></div>
-                    </div>
-                </div>
+            <div class="nav-dropdown-menu" id="navDropdownMenu">
+                <a href="cambiar_password.php" class="dropdown-item">
+                    <i class="fa-solid fa-user-lock"></i>
+                    <span>Cambiar Contraseña</span>
+                </a>
+                <a href="javascript:void(0)" class="dropdown-item" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Cerrar Sesión</span>
+                </a>
             </div>
-        </aside>
+        </div>
 
+        <!-- Toggle de Tema -->
+        <div class="nav-item theme-toggle" id="theme-toggle" title="Cambiar Tema">
+            <i class="fas fa-moon" id="theme-icon"></i>
+            <span class="theme-label">Modo Oscuro</span>
+        </div>
+
+        <!-- Avatar en Footer (alternativa) -->
+        <div class="footer-avatar" style="display: none;">
+            <div class="footer-avatar-img"><?php echo $iniciales; ?></div>
+            <div class="footer-avatar-info">
+                <div class="footer-avatar-name"><?php echo htmlspecialchars($usuario_nombre); ?></div>
+                <div class="footer-avatar-status">En línea</div>
+            </div>
+            <i class="fas fa-ellipsis-h" style="color: var(--icon-color); margin-left: auto;"></i>
+        </div>
+    </div>
+</aside>
         <main class="main-content">
             <div id="dashboard-section" class="content-section active">
                 <div class="content-header">
@@ -547,6 +559,25 @@ if(strlen($iniciales) == 0) {
                 window.history.replaceState({}, document.title, 'coordinador.php');
             }
         });
+        function toggleDropdown() {
+    const menu = document.getElementById('navDropdownMenu');
+    menu.classList.toggle('active');
+}
+
+// Cerrar dropdown al hacer click fuera
+document.addEventListener('click', function(event) {
+    const dropdown = document.querySelector('.nav-dropdown-container');
+    if (!dropdown.contains(event.target)) {
+        document.getElementById('navDropdownMenu').classList.remove('active');
+    }
+});
+
+// Cerrar dropdown al seleccionar una opción
+document.querySelectorAll('.dropdown-item').forEach(item => {
+    item.addEventListener('click', function() {
+        document.getElementById('navDropdownMenu').classList.remove('active');
+    });
+});
     </script>
 </body>
 </html>
