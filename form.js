@@ -491,34 +491,26 @@ class FormValidator {
         return true;
     }
 
-    // 13. MANEJAR REGISTRO
+     // 13. MANEJAR REGISTRO
     handleRegisterSubmit(e) {
-        e.preventDefault();
-        
-        const registerBtn = document.getElementById('registerBtn');
         const user = document.getElementById('registerUser').value.trim();
         const email = document.getElementById('registerEmail').value.trim();
         const password = document.getElementById('registerPassword').value;
 
+        // Validar campos antes de enviar
         const userValid = this.validateField(document.getElementById('registerUser'), 'user');
         const emailValid = this.validateField(document.getElementById('registerEmail'), 'email');
         const passValid = this.validateField(document.getElementById('registerPassword'), 'registerPassword');
 
         if (!userValid || !emailValid || !passValid) {
+            e.preventDefault(); // Solo prevenir si hay errores
             this.showMessage('Por favor, corrige los errores antes de continuar', 'error');
-            return;
+            return false;
         }
 
-        this.setButtonLoading(registerBtn, 'Creando cuenta...');
-
-        setTimeout(() => {
-            console.log('Registro exitoso:', { user, email, password });
-            this.showMessage('¡Cuenta creada exitosamente! Redirigiendo...', 'success');
-            
-            setTimeout(() => {
-                window.location.href = this.redirectUrls.register;
-            }, 1500);
-        }, 2000);
+        // Si todo es válido, el formulario se enviará normalmente a auth.php
+        console.log('Formulario de registro válido, enviando a auth.php');
+        return true;
     }
     
     // 14. UTILIDADES
