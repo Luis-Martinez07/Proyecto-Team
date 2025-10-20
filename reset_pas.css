@@ -21,8 +21,9 @@
         
         .recovery-icon {
         font-size: 35px; /* Tamaño del ícono */
-        color: rgb(255, 255, 255); /* Color del ícono */
-        background-color: #000000; /* Fondo del círculo */
+        color: rgb(0, 0, 0); /* Color del ícono */
+        background-color: transparent;
+        border: 1px solid black; /* Fondo del círculo */
         width: 70px; /* Ancho fijo */
         height: 70px; /* Alto fijo (igual al ancho = círculo perfecto) */
         border-radius: 50%; /* Hace el círculo */

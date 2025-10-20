@@ -2,13 +2,14 @@
 // config.php
 function conectarDB() {
     $host = 'localhost';
-    $dbname = 'sena_horarios'; // ⚠️ Cambia esto por el nombre real
-    $username = 'root'; // o tu usuario de MySQL
-    $password = ''; // tu contraseña de MySQL
+    $port = '3307';  // ← AGREGAMOS ESTO
+    $dbname = 'sena_horarios';
+    $username = 'root';
+    $password = '';
     
     try {
         $pdo = new PDO(
-            "mysql:host=$host;dbname=$dbname;charset=utf8mb4",
+            "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4",  // ← AGREGAMOS port=$port
             $username,
             $password,
             [

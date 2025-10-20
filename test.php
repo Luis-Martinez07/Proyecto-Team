@@ -1,26 +1,19 @@
 <?php
-require_once 'config.php';
+echo "<h1>Test de Conexión</h1>";
 
-echo "<h2>Probando conexión...</h2>";
+$host = 'localhost';
+$port = '3307';  // ← AGREGAMOS EL PUERTO
+$dbname = 'sena_horarios';
+$username = 'root';
+$password = '';
 
 try {
-    $pdo = conectarDB();
-    echo "✅ Conexión exitosa<br>";
-    
-    // Contar usuarios
-    $stmt = $pdo->query("SELECT COUNT(*) FROM usuarios");
-    $total = $stmt->fetchColumn();
-    echo "Total usuarios: $total<br>";
-    
-    // Mostrar usuarios
-    $stmt = $pdo->query("SELECT id, nombre, email, rol FROM usuarios");
-    echo "<h3>Usuarios:</h3><ul>";
-    while($user = $stmt->fetch()) {
-        echo "<li>{$user['nombre']} - {$user['email']} ({$user['rol']})</li>";
-    }
-    echo "</ul>";
-    
-} catch(Exception $e) {
-    echo "❌ Error: " . $e->getMessage();
+    $pdo = new PDO("mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4", $username, $password);
+    echo "✅ <strong>CONEXIÓN EXITOSA!</strong>";
+    echo "<br>Base de datos: $dbname";
+    echo "<br>Puerto: $port";
+} catch (PDOException $e) {
+    echo "❌ <strong>ERROR DE CONEXIÓN:</strong><br>";
+    echo $e->getMessage();
 }
 ?>

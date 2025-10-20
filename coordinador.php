@@ -23,7 +23,7 @@ $usuario_rol = $_SESSION['usuario_rol'];
 // Manejar logout
 if (isset($_GET['logout'])) {
     session_destroy();
-    header('Location: index.php?tipo=exito&mensaje=' . urlencode('Sesión cerrada exitosamente'));
+    header('Location: index.php?tipo=exito&mensaje=' . urlencode('Sesión cerrada exitosamente '));
     exit;
 }
 

@@ -151,10 +151,15 @@ body {
     font-size: 0.85rem;
 }
 
+/* Hover del enlace forgot password */
 .forgot-password a:hover {
-    color: #0004FF;
+    color: var(--forgot-password) !important;
 }
 
+/* En modo oscuro, cambiar a azul claro */
+[data-theme="dark"] .forgot-password a:hover {
+    color: #60a5fa !important;
+}
 /* Espaciador para el registro que simula el forgot password */
 .register-spacer {
     height: 20px;
@@ -234,8 +239,9 @@ body {
     position: absolute;
     right: 0;
     width: 50%;
+    border-radius: 60px;
     height: 100%;
-   background: linear-gradient(155deg, #2727F5 50%, #ADADAD 50%);
+    background: linear-gradient(155deg, #2727F5 50%, #ADADAD 50%);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -431,6 +437,7 @@ body {
     --bg-container: white;
     --text-primary: #000000;
     --text-secondary: #000000;
+    --forgot-password:#2727F5;
     --border-color: #000000;
     --input-bg: transparent;
     --gradient-1: #2727F5;
@@ -449,7 +456,7 @@ body {
     --border-color: #555555;
     --input-bg: #3a3a3a;
     --gradient-1: #ffffff;
-    --gradient-2: #5e5e5e;
+    --gradient-2: #60a5fa ;
     --btn-hover-bg: #ffffff;
     --btn-hover-text: #000000;
 }
@@ -644,10 +651,6 @@ body {
 
 .forgot-password a {
     color: var(--text-secondary) !important;
-}
-
-.forgot-password a:hover {
-    color: #ffffff !important;
 }
 
 .panel {

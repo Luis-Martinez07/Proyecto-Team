@@ -20,10 +20,34 @@ session_start();
 <div class="container" id="container">
     
     <?php if(isset($_GET['mensaje'])): ?>
-        <div class="mensaje <?php echo htmlspecialchars($_GET['tipo']); ?>">
-            <?php echo htmlspecialchars($_GET['mensaje']); ?>
-        </div>
-    <?php endif; ?>
+    <div class="mensaje <?php echo htmlspecialchars($_GET['tipo']); ?>">
+        <span><?php echo htmlspecialchars($_GET['mensaje']); ?></span>
+        <?php if($_GET['tipo'] === 'exito'): ?>
+            <i class="fas fa-check-circle"></i>
+        <?php elseif($_GET['tipo'] === 'error'): ?>
+            <i class="fas fa-exclamation-circle"></i>
+        <?php endif; ?>
+    </div>
+    <script>
+        // Mostrar el mensaje por 3 segundos y luego limpiarlo
+        setTimeout(function() {
+            const mensaje = document.querySelector('.mensaje');
+            if (mensaje) {
+                mensaje.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                mensaje.style.opacity = '0';
+                mensaje.style.transform = 'translateY(-20px)';
+                
+                setTimeout(function() {
+                    const url = new URL(window.location);
+                    url.searchParams.delete('mensaje');
+                    url.searchParams.delete('tipo');
+                    window.history.replaceState({}, document.title, url.pathname);
+                    mensaje.remove();
+                }, 500);
+            }
+        }, 3000);
+    </script>
+<?php endif; ?>
 
     <!-- Login Form -->
     <div class="form-container login">
