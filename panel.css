@@ -41,7 +41,7 @@
 }
 
 body {
-     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     font-weight: 500;
     background: var(--body-bg);
     color: var(--text-primary);
@@ -112,13 +112,13 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    margin-bottom: 2px;
+    
 }
 
 .user-role-header {
     font-size: 13px;
     color: var(--text-secondary);
-    font-weight: 400;
+    
 }
 
 /* ========================================
@@ -408,8 +408,8 @@ body {
    MENSAJE DE BIENVENIDA
    ======================================== */
 .welcome-message {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: #ffffff;
+    background: white;
+    color: #000000;
     padding: 1.5rem 2rem;
     border-radius: 16px;
     box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);

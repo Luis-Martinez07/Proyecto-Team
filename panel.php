@@ -88,12 +88,12 @@ if (strlen($iniciales) == 0) {
         
         <div class="nav-item" onclick="showSection('schedules')">
             <span class="nav-icon"><i class="fa-regular fa-calendar"></i></span>
-            <span>Mis Horarios</span>
+            <span>Horarios</span>
         </div>
 
         <div class="nav-item" onclick="showSection('classes')">
             <span class="nav-icon"><i class="fa-solid fa-chalkboard-teacher"></i></span>
-            <span>Mis Clases</span>
+            <span>Reporte</span>
             <span class="nav-badge" id="classesBadge">0</span>
         </div>
         

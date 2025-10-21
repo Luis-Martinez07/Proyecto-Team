@@ -78,11 +78,11 @@ function logout() {
         <p class="custom-alert-message">¿Estás seguro de que deseas cerrar tu sesión?</p>
         <div class="custom-alert-buttons">
             <button class="custom-alert-btn cancel-btn" onclick="closeLogoutAlert()">
-                <i class="fas fa-times"></i>
+                <i class="fa-solid fa-circle-xmark"></i>
                 Cancelar
             </button>
             <button class="custom-alert-btn confirm-btn" onclick="confirmLogout()">
-                <i class="fas fa-check"></i>
+                <i class="fas fa-check-circle"></i>
                 Cerrar Sesión
             </button>
         </div>
