@@ -176,7 +176,18 @@ if (strlen($iniciales) == 0) {
             </div>
         </div>
     </div>
+
+   <div class="content-header">
+<div class="acciones-rapidas">
+    <div class="title-acciones">
+    <h1>Funciones el Sistema<h1>
+</div>
+</div>
+</div>
+
 </main>
+
+ 
 
 <!-- Script JavaScript -->
 <script src="panel.js"></script>
