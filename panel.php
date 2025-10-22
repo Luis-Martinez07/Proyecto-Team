@@ -69,7 +69,7 @@ if (strlen($iniciales) == 0) {
 <!-- Sidebar -->
 <aside class="sidebar" id="sidebar">
     <!-- Header con Avatar y Nombre -->
-    <div class="sidebar-header">
+     <div class="sidebar-header">
         <div class="user-profile-header">
             <div class="user-avatar-header"><?php echo $iniciales; ?></div>
             <div class="user-info-header">
@@ -156,7 +156,7 @@ if (strlen($iniciales) == 0) {
             
             <div class="acciones-rapidas">
                 <div class="accion-card" onclick="showSection('schedules')">
-                    <i class="fa-regular fa-calendar accion-icon"></i>
+                    <i class="fa-regular fa-calendar-days accion-icon"></i>
                     <div>
                         <h3>Gestionar Horarios</h3>
                         <p>Administra y organiza tus horarios de clases de manera eficiente.</p>
@@ -164,9 +164,9 @@ if (strlen($iniciales) == 0) {
                 </div>
                 
                 <div class="accion-card" onclick="showSection('classes')">
-                    <i class="fa-solid fa-chalkboard-teacher accion-icon"></i>
+                    <i class="fa-regular fa-file accion-icon"></i>
                     <div>
-                        <h3>Ver Reporte de Clases</h3>
+                        <h3>Ver Reporte</h3>
                         <p>Consulta el reporte detallado de tus clases y su desempeño.</p>
                     </div>
                 </div>
