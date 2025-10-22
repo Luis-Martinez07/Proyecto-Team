@@ -730,6 +730,9 @@ body {
     color: var(--icon-accion-color);
     flex-shrink: 0;
 }
+.accion-icon:hover{
+    color: var(--primary);
+}
 
 .accion-card h3 {
     margin: 0 0 8px 0;
