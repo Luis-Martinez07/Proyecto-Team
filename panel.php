@@ -292,7 +292,7 @@ if (strlen($iniciales) == 0) {
                     <i class="fa-solid fa-arrow-left"></i>
                     Volver
                 </button>
-                <h1>Crear Nuevo Horario</h1>
+                <h2>Crear Nuevo Horario</h2>
             </div>
 
             <div class="schedule-form-container">

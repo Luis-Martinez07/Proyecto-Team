@@ -16,7 +16,7 @@
     --body-bg: #ffffff;
     --bg-primary: #ffffff;
     --bg-dark: #f9fafb;
-    --icon-accion-color: #6b7280;
+    --icon-accion-color: #000000;
     --card-bg: #ffffff;
     --divider-color: #e5e7eb;
     --border-color: #e5e7eb;
@@ -58,6 +58,10 @@ body {
 /* ========================================
    SIDEBAR
    ======================================== */
+/* ========================================
+   SIDEBAR MEJORADO CON COLAPSABLE
+   ======================================== */
+
 .sidebar {
     width: 280px;
     background: var(--sidebar-bg);
@@ -69,15 +73,56 @@ body {
     position: fixed;
     overflow-y: auto;
     z-index: 100;
-    transition: all 0.3s ease;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.sidebar.collapsed {
+    width: 80px;
+}
+
+/* Botón Toggle Sidebar */
+.sidebar-toggle-btn {
+    position: absolute;
+    top: 20px;
+    right: -12px;
+    width: 24px;
+    height: 24px;
+    background: var(--primary);
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: white;
+    font-size: 12px;
+    transition: all 0.3s ease;
+    z-index: 101;
+}
+
+.sidebar-toggle-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.sidebar.collapsed .sidebar-toggle-btn i {
+    transform: rotate(180deg);
+}
+
+/* ========================================
+   HEADER
+   ======================================== */
 .sidebar-header {
     padding: 20px 16px 0 16px;
     background: transparent;
     color: inherit;
     border: none;
     margin: 0 0 24px 0;
+    transition: all 0.3s ease;
+}
+
+.sidebar.collapsed .sidebar-header {
+    padding: 20px 8px 0 8px;
 }
 
 .user-profile-header {
@@ -90,10 +135,17 @@ body {
     margin-bottom: 20px;
     transition: all 0.2s ease;
     cursor: pointer;
+    position: relative;
+}
+
+.sidebar.collapsed .user-profile-header {
+    justify-content: center;
+    padding: 12px 8px;
 }
 
 .user-profile-header:hover {
     background: var(--border-color);
+    transform: translateY(-2px);
 }
 
 .user-avatar-header {
@@ -108,11 +160,20 @@ body {
     font-weight: 600;
     font-size: 14px;
     flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 .user-info-header {
     flex: 1;
     min-width: 0;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar.collapsed .user-info-header {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
 }
 
 .user-name-header {
@@ -133,9 +194,13 @@ body {
    NAVEGACIÓN
    ======================================== */
 .sidebar-nav {
-   flex: 0 0 auto;
+    flex: 0 0 auto;
     padding: 0 16px 16px 16px;
     overflow-y: auto;
+}
+
+.sidebar.collapsed .sidebar-nav {
+    padding: 0 8px 16px 8px;
 }
 
 .nav-item {
@@ -155,11 +220,22 @@ body {
     width: 100%;
     text-align: left;
     font-family: inherit;
+    position: relative;
+}
+
+.sidebar.collapsed .nav-item {
+    justify-content: center;
+    padding: 12px 8px;
 }
 
 .nav-item:hover {
     background: var(--hover-bg);
     color: var(--text-primary);
+    transform: translateX(4px);
+}
+
+.sidebar.collapsed .nav-item:hover {
+    transform: translateX(0);
 }
 
 .nav-icon {
@@ -168,14 +244,51 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+}
+
+.nav-item span:not(.nav-icon):not(.nav-badge) {
+    white-space: nowrap;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar.collapsed .nav-item span:not(.nav-icon):not(.nav-badge) {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
 }
 
 .nav-item.active {
     background: var(--active-bg);
     color: var(--text-primary);
     font-weight: 600;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
 }
 
+.nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 60%;
+    background: var(--primary);
+    border-radius: 0 4px 4px 0;
+}
+
+.sidebar.collapsed .nav-item.active::before {
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    top: auto;
+    bottom: 8px;
+}
+
+/* Badges */
 .nav-badge {
     margin-left: auto;
     background: #d1d5db;
@@ -183,9 +296,20 @@ body {
     font-size: 12px;
     font-weight: 600;
     padding: 4px 10px;
-    border-radius: 6px;
+    border-radius: 12px;
     min-width: 24px;
     text-align: center;
+    opacity: 1;
+    transition: all 0.3s ease;
+}
+
+.sidebar.collapsed .nav-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 2px 6px;
+    font-size: 10px;
+    min-width: 18px;
 }
 
 [data-theme="dark"] .nav-badge {
@@ -196,6 +320,12 @@ body {
 .nav-item.active .nav-badge {
     background: var(--primary);
     color: white;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
 }
 
 .divide {
@@ -205,16 +335,54 @@ body {
 }
 
 /* ========================================
+   TOOLTIPS (Modo Colapsado)
+   ======================================== */
+.nav-item[data-tooltip] {
+    position: relative;
+}
+
+.sidebar.collapsed .nav-item::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--tooltip-bg, #1f2937);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    margin-left: 12px;
+    transition: opacity 0.2s ease;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.sidebar.collapsed .nav-item:hover::after {
+    opacity: 1;
+}
+
+/* ========================================
    FOOTER DEL SIDEBAR
    ======================================== */
 .sidebar-footer {
-   margin-top: auto;
+    margin-top: auto;
     padding: 12px 16px;
     border-top: 1px solid var(--divider-color);
+    position: relative;
+    z-index: 1001;
+}
+
+.sidebar.collapsed .sidebar-footer {
+    padding: 12px 8px;
 }
 
 .nav-dropdown-container {
-     margin: 0 0 4px 0;
+    margin: 0 0 4px 0;
+    position: relative;
 }
 
 .nav-dropdown-toggle {
@@ -233,6 +401,12 @@ body {
     width: 100%;
     text-align: left;
     font-family: inherit;
+    position: relative;
+}
+
+.sidebar.collapsed .nav-dropdown-toggle {
+    justify-content: center;
+    padding: 12px 8px;
 }
 
 .nav-dropdown-toggle:hover {
@@ -244,6 +418,12 @@ body {
     margin-left: auto;
     transition: transform 0.2s ease;
     font-size: 14px;
+    opacity: 1;
+}
+
+.sidebar.collapsed .dropdown-arrow {
+    opacity: 0;
+    width: 0;
 }
 
 .nav-dropdown-toggle.active .dropdown-arrow {
@@ -251,21 +431,60 @@ body {
 }
 
 .nav-dropdown-menu {
-      background: var(--sidebar-bg);
+    position: fixed;
+    left: 292px; /* 280px sidebar + 12px margin */
+    bottom: 60px; /* Ajusta según tu footer */
+    background: var(--sidebar-bg);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
-    overflow: hidden;
-    max-height: 0;
+    border-radius: 12px;
+    overflow: visible;
+    width: 220px;
     opacity: 0;
-    margin: 4px 0 4px 0;
-    transition: all 0.3s ease;
-    transform: scaleY(0);
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(-10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    z-index: 9999;
+}
+
+.sidebar.collapsed .nav-dropdown-menu {
+    left: 92px; /* 80px sidebar collapsed + 12px margin */
+}
+
+/* Flecha indicadora */
+.nav-dropdown-menu::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    bottom: 24px;
+    width: 12px;
+    height: 12px;
+    background: var(--sidebar-bg);
+    border-left: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    transform: rotate(45deg);
+    z-index: -1;
 }
 
 .nav-dropdown-menu.active {
-   max-height: 200px;
     opacity: 1;
-    transform: scaleY(1);
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(0);
+}
+
+/* Responsive para móvil */
+@media (max-width: 768px) {
+    .nav-dropdown-menu {
+        width: 200px;
+        left: auto !important;
+        right: 16px;
+    }
+    
+    .nav-dropdown-menu::before {
+        display: none; /* Ocultar flecha en móvil */
+    }
 }
 
 .dropdown-item {
@@ -284,6 +503,7 @@ body {
 .dropdown-item:hover {
     background: var(--hover-bg);
     color: var(--text-primary);
+    padding-left: 20px;
 }
 
 .dropdown-item i {
@@ -291,6 +511,7 @@ body {
     width: 20px;
 }
 
+/* Toggle de Tema */
 .theme-toggle {
     margin: 0;
     background: transparent;
@@ -311,6 +532,9 @@ body {
     font-weight: 500;
 }
 
+/* ========================================
+   SCROLLBAR
+   ======================================== */
 .sidebar::-webkit-scrollbar {
     width: 6px;
 }
@@ -322,6 +546,52 @@ body {
 .sidebar::-webkit-scrollbar-thumb {
     background: var(--border-color);
     border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+    
+    .sidebar.active {
+        transform: translateX(0);
+    }
+    
+    .sidebar-toggle-btn {
+        display: none;
+    }
+}
+
+/* Overlay para móvil */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 99;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+@media (max-width: 768px) {
+    .sidebar-overlay {
+        display: block;
+    }
 }
 
 /* ========================================
@@ -351,7 +621,7 @@ body {
     gap: 16px;
 }
 
-.content-header h1 {
+.content-header h2 {
      font-size: 28px;
     font-weight: 700;
     margin-bottom: 8px;
