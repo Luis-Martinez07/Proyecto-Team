@@ -48,6 +48,7 @@ if (strlen($iniciales) == 0) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="panel.css">
+    <link href="/src/style.css" rel="stylesheet">
     <title>Panel Instructor</title>
 </head>
 <body>
@@ -297,86 +298,102 @@ if (strlen($iniciales) == 0) {
 
             <div class="schedule-form-container">
                 <!-- Paso 1: Configuración Básica -->
-                <div class="form-card">
-                    <div class="form-card-header">
-                        <h3><i class="fa-solid fa-gear"></i> Configuración Básica</h3>
+               <div class="container">
+        <div class="form-card">
+            <div class="form-card-header">
+                <h3><i class="fa-solid fa-gear"></i> Configuración Básica</h3>
+            </div>
+            <div class="form-card-body">
+                <div class="form-group">
+                    <label>Nombre del Horario *</label>
+                    <input type="text" class="form-control" placeholder="Ej: Horario Semestre 2025-1" id="scheduleName">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Hora de Inicio *</label>
+                        <div class="time-picker-wrapper">
+                            <input type="text" class="time-picker-input" placeholder="Seleccionar hora" readonly id="scheduleStartTime">
+                            <i class="fa-regular fa-clock time-picker-icon"></i>
+                            <div class="time-picker-dropdown" id="startTimeDropdown">
+                                <div class="calendar-section">
+                                    <div class="calendar-header">
+                                        <button onclick="changeMonth(-1, 'start')"><i class="fa-solid fa-chevron-left"></i></button>
+                                        <span class="calendar-month" id="startCalendarMonth"></span>
+                                        <button onclick="changeMonth(1, 'start')"><i class="fa-solid fa-chevron-right"></i></button>
+                                    </div>
+                                    <div class="calendar-weekdays">
+                                        <div class="calendar-weekday">Do</div>
+                                        <div class="calendar-weekday">Lu</div>
+                                        <div class="calendar-weekday">Ma</div>
+                                        <div class="calendar-weekday">Mi</div>
+                                        <div class="calendar-weekday">Ju</div>
+                                        <div class="calendar-weekday">Vi</div>
+                                        <div class="calendar-weekday">Sá</div>
+                                    </div>
+                                    <div class="calendar-days" id="startCalendarDays"></div>
+                                    <div class="calendar-footer">
+                                        <button class="calendar-btn primary" onclick="selectToday('start')">Hoy</button>
+                                        <button class="calendar-btn" onclick="clearSelection('start')">Limpiar</button>
+                                    </div>
+                                </div>
+                                <div class="time-section">
+                                    <div class="time-header">
+                                        <i class="fa-regular fa-clock"></i>
+                                        <span>Seleccionar hora</span>
+                                    </div>
+                                    <div class="time-slots" id="startTimeSlots"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-card-body">
-                        <div class="form-group">
-                            <label>Nombre del Horario </label>
-                            <input type="text" class="form-control" placeholder="" id="scheduleName">
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Hora de Inicio </label>
-                                <input type="time" class="form-control" value="07:00" id="startTime">
-                            </div>
-                            <div class="form-group">
-                                <label>Hora de Fin </label>
-                                <input type="time" class="form-control" value="18:00" id="endTime">
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Duración por Bloque (minutos) </label>
-                                <select class="form-control" id="blockDuration">
-                                    <option value="45">45 minutos</option>
-                                    <option value="50">50 minutos</option>
-                                    <option value="60" selected>60 minutos (1 hora)</option>
-                                    <option value="90">90 minutos (1.5 horas)</option>
-                                    <option value="120">120 minutos (2 horas)</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Descanso entre Bloques (minutos)</label>
-                                <select class="form-control" id="breakDuration">
-                                    <option value="0">Sin descanso</option>
-                                    <option value="5">5 minutos</option>
-                                    <option value="10" selected>10 minutos</option>
-                                    <option value="15">15 minutos</option>
-                                    <option value="20">20 minutos</option>
-                                </select>
+                    <div class="form-group">
+                        <label>Hora de Fin *</label>
+                        <div class="time-picker-wrapper">
+                            <input type="text" class="time-picker-input" placeholder="Seleccionar hora" readonly id="scheduleEndTime">
+                            <i class="fa-regular fa-clock time-picker-icon"></i>
+                            <div class="time-picker-dropdown" id="endTimeDropdown">
+                                <div class="calendar-section">
+                                    <div class="calendar-header">
+                                        <button onclick="changeMonth(-1, 'end')"><i class="fa-solid fa-chevron-left"></i></button>
+                                        <span class="calendar-month" id="endCalendarMonth"></span>
+                                        <button onclick="changeMonth(1, 'end')"><i class="fa-solid fa-chevron-right"></i></button>
+                                    </div>
+                                    <div class="calendar-weekdays">
+                                        <div class="calendar-weekday">Do</div>
+                                        <div class="calendar-weekday">Lu</div>
+                                        <div class="calendar-weekday">Ma</div>
+                                        <div class="calendar-weekday">Mi</div>
+                                        <div class="calendar-weekday">Ju</div>
+                                        <div class="calendar-weekday">Vi</div>
+                                        <div class="calendar-weekday">Sá</div>
+                                    </div>
+                                    <div class="calendar-days" id="endCalendarDays"></div>
+                                    <div class="calendar-footer">
+                                        <button class="calendar-btn primary" onclick="selectToday('end')">Hoy</button>
+                                        <button class="calendar-btn" onclick="clearSelection('end')">Limpiar</button>
+                                    </div>
+                                </div>
+                                <div class="time-section">
+                                    <div class="time-header">
+                                        <i class="fa-regular fa-clock"></i>
+                                        <span>Seleccionar hora</span>
+                                    </div>
+                                    <div class="time-slots" id="endTimeSlots"></div>
+                                </div>
                             </div>
                         </div>
-
-                        <div class="form-group">
-                            <label>Días Activos </label>
-                            <div class="days-selector">
-                                <label class="day-checkbox">
-                                    <input type="checkbox" checked>
-                                    <span>Lun</span>
-                                </label>
-                                <label class="day-checkbox">
-                                    <input type="checkbox" checked>
-                                    <span>Mar</span>
-                                </label>
-                                <label class="day-checkbox">
-                                    <input type="checkbox" checked>
-                                    <span>Mié</span>
-                                </label>
-                                <label class="day-checkbox">
-                                    <input type="checkbox" checked>
-                                    <span>Jue</span>
-                                </label>
-                                <label class="day-checkbox">
-                                    <input type="checkbox" checked>
-                                    <span>Vie</span>
-                                </label>
-                                <label class="day-checkbox">
-                                    <input type="checkbox">
-                                    <span>Sáb</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <button class="btn btn-primary" onclick="generateScheduleGrid()">
-                            <i class="fa-solid fa-table"></i>
-                            Generar Tabla de Horario
-                        </button>
                     </div>
                 </div>
+                
+                <button class="btn btn-primary" onclick="generateScheduleGrid()">
+                    <i class="fa-solid fa-table"></i>
+                    Generar Tabla de Horario
+                </button>
+            </div>
+        </div>
+    </div>
+
 
                 <!-- Paso 2: Tabla de Horario -->
                 <div class="form-card" id="scheduleGridCard" style="display: none;">

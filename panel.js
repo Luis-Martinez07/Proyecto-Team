@@ -1,73 +1,474 @@
 // ========================================
-// TOGGLE SIDEBAR (MOBILE)
+// VARIABLES GLOBALES
+// ========================================
+let currentDate = new Date();
+let selectedDate = new Date();
+let horarioEnEdicion = null;
+let currentCell = null;
+
+// Time Picker Variables
+const timePickerData = {
+    start: {
+        currentDate: new Date(),
+        selectedDate: null,
+        selectedTime: null
+    },
+    end: {
+        currentDate: new Date(),
+        selectedDate: null,
+        selectedTime: null
+    }
+};
+
+const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+// ========================================
+// INICIALIZACIÓN
+// ========================================
+document.addEventListener('DOMContentLoaded', function() {
+    initializeApp();
+    setupEventListeners();
+    updateBadges();
+    updateStats();
+    checkWelcomeMessage();
+    
+    // Inicializar time pickers después de un pequeño delay
+    setTimeout(() => {
+        initializeTimePickers();
+    }, 300);
+});
+
+function initializeTimePickers() {
+    const startTimeInput = document.getElementById('scheduleStartTime');
+    const endTimeInput = document.getElementById('scheduleEndTime');
+    
+    if (startTimeInput) {
+        console.log('Inicializando time picker start');
+        initTimePicker('start');
+        renderTimeCalendar('start');
+    }
+    
+    if (endTimeInput) {
+        console.log('Inicializando time picker end');
+        initTimePicker('end');
+        renderTimeCalendar('end');
+    }
+}
+
+function initializeApp() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+}
+
+function setupEventListeners() {
+    const modal = document.getElementById('assignModal');
+    if (modal) {
+        document.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                closeAssignModal();
+            }
+        });
+    }
+    
+    document.addEventListener('click', function(event) {
+        const dropdown = document.querySelector('.nav-dropdown-container');
+        if (dropdown && !dropdown.contains(event.target)) {
+            closeDropdown();
+        }
+    });
+    
+    if (window.innerWidth <= 768) {
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', closeMobileSidebar);
+        });
+    }
+}
+
+// ========================================
+// TIME PICKER - INICIALIZACIÓN
+// ========================================
+function initTimePicker(type) {
+    const input = document.getElementById(type === 'start' ? 'scheduleStartTime' : 'scheduleEndTime');
+    const dropdown = document.getElementById(type + 'TimeDropdown');
+
+    if (!input || !dropdown) return;
+
+    input.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeAllTimeDropdowns();
+        
+        // Posicionar el dropdown
+        const rect = input.getBoundingClientRect();
+        const dropdownHeight = 500; // Altura máxima del dropdown
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        
+        // Decidir si mostrar arriba o abajo
+        if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+            // Mostrar arriba
+            dropdown.style.top = 'auto';
+            dropdown.style.bottom = (window.innerHeight - rect.top + 5) + 'px';
+        } else {
+            // Mostrar abajo
+            dropdown.style.top = (rect.bottom + 5) + 'px';
+            dropdown.style.bottom = 'auto';
+        }
+        
+        // Posicionar horizontalmente
+        dropdown.style.left = rect.left + 'px';
+        
+        // Ajustar si se sale por la derecha
+        const dropdownWidth = 520; // Ancho aproximado del dropdown
+        if (rect.left + dropdownWidth > window.innerWidth) {
+            dropdown.style.left = (window.innerWidth - dropdownWidth - 20) + 'px';
+        }
+        
+        dropdown.classList.add('active');
+        renderTimeCalendar(type);
+        renderTimeSlots(type);
+    });
+
+    generateTimeSlots(type);
+}
+
+function closeAllTimeDropdowns() {
+    document.querySelectorAll('.time-picker-dropdown').forEach(d => {
+        d.classList.remove('active');
+        // limpiar posición inline si se puso
+        d.style.top = '';
+        d.style.bottom = '';
+        d.style.left = '';
+    });
+}
+
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.time-picker-wrapper')) {
+        closeAllTimeDropdowns();
+    }
+});
+
+// ========================================
+// TIME PICKER - CALENDARIO
+// ========================================
+function renderTimeCalendar(type) {
+    const date = timePickerData[type].currentDate;
+    const year = date.getFullYear();
+    const month = date.getMonth();
+
+    const monthElement = document.getElementById(type + 'CalendarMonth');
+    if (monthElement) {
+        monthElement.textContent = `${monthNames[month]} ${year}`;
+    }
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+    const daysContainer = document.getElementById(type + 'CalendarDays');
+    if (!daysContainer) return;
+
+    daysContainer.innerHTML = '';
+
+    // Días del mes anterior
+    for (let i = firstDay - 1; i >= 0; i--) {
+        const day = daysInPrevMonth - i;
+        const dayEl = createTimeDayElement(day, true, type, year, month - 1);
+        daysContainer.appendChild(dayEl);
+    }
+
+    // Días del mes actual
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dayEl = createTimeDayElement(day, false, type, year, month);
+        daysContainer.appendChild(dayEl);
+    }
+
+    // Días del mes siguiente
+    const remainingDays = 42 - daysContainer.children.length;
+    for (let day = 1; day <= remainingDays; day++) {
+        const dayEl = createTimeDayElement(day, true, type, year, month + 1);
+        daysContainer.appendChild(dayEl);
+    }
+}
+
+function createTimeDayElement(day, isOtherMonth, type, year, month) {
+    const dayEl = document.createElement('div');
+    dayEl.className = 'calendar-day';
+    dayEl.textContent = day;
+
+    if (isOtherMonth) dayEl.classList.add('other-month');
+
+    const selectedDate = timePickerData[type].selectedDate;
+    if (selectedDate && 
+        selectedDate.getDate() === day && 
+        selectedDate.getMonth() === month && 
+        selectedDate.getFullYear() === year &&
+        !isOtherMonth) {
+        dayEl.classList.add('selected');
+    }
+
+    const today = new Date();
+    if (!isOtherMonth &&
+        today.getDate() === day && 
+        today.getMonth() === month && 
+        today.getFullYear() === year) {
+        dayEl.classList.add('today');
+    }
+
+    dayEl.addEventListener('click', (e) => {
+        e.stopPropagation(); // <- importante
+        timePickerData[type].selectedDate = new Date(year, month, day);
+        renderTimeCalendar(type);
+        updateTimeInput(type);
+
+        // si ya hay hora, cerrar el dropdown correspondiente
+        if (timePickerData[type].selectedTime) {
+            const dropdown = document.getElementById(type + 'TimeDropdown');
+            if (dropdown) {
+                dropdown.classList.remove('active');
+                dropdown.style.top = '';
+                dropdown.style.bottom = '';
+                dropdown.style.left = '';
+            }
+        }
+    });
+
+    return dayEl;
+}
+
+
+function selectTimeSlot(timeValue, timeDisplay, type) {
+    timePickerData[type].selectedTime = { value: timeValue, display: timeDisplay };
+    renderTimeSlots(type);
+    updateTimeInput(type);
+
+    // ✅ Si también se ha elegido una fecha, cerrar el dropdown manualmente
+    if (timePickerData[type].selectedDate) {
+        const dropdown = document.getElementById(type + 'TimeDropdown');
+        if (dropdown) dropdown.classList.remove('active');
+    }
+}
+
+
+function changeMonth(delta, type) {
+    const date = timePickerData[type].currentDate;
+    date.setMonth(date.getMonth() + delta);
+    renderTimeCalendar(type);
+}
+
+function selectToday(type) {
+    timePickerData[type].selectedDate = new Date();
+    timePickerData[type].currentDate = new Date();
+    renderTimeCalendar(type);
+    updateTimeInput(type);
+}
+
+function clearSelection(type) {
+    timePickerData[type].selectedDate = null;
+    timePickerData[type].selectedTime = null;
+    const input = document.getElementById(type === 'start' ? 'scheduleStartTime' : 'scheduleEndTime');
+    if (input) {
+        input.value = '';
+        delete input.dataset.timeValue;
+    }
+    renderTimeCalendar(type);
+    renderTimeSlots(type);
+}
+
+// ========================================
+// TIME PICKER - HORAS
+// ========================================
+function generateTimeSlots(type) {
+    const container = document.getElementById(type + 'TimeSlots');
+    if (!container) return;
+
+    const times = [];
+    for (let hour = 0; hour < 24; hour++) {
+        for (let min = 0; min < 60; min += 30) {
+            const isPM = hour >= 12;
+            const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+            const displayMin = min.toString().padStart(2, '0');
+            const period = isPM ? 'PM' : 'AM';
+            const timeValue = `${hour.toString().padStart(2, '0')}:${displayMin}`;
+            const timeDisplay = `${displayHour.toString().padStart(2, '0')}:${displayMin} ${period}`;
+            times.push({ value: timeValue, display: timeDisplay });
+        }
+    }
+
+    container.innerHTML = ''; // vaciar
+
+    times.forEach(time => {
+        const slot = document.createElement('div');
+        slot.className = 'time-slot';
+        slot.textContent = time.display;
+
+        // evitar burbujeo y manejar selección
+        slot.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectTimeSlot(time.value, time.display, type);
+            // cerrar el dropdown si ya hay fecha seleccionada (seguro)
+            if (timePickerData[type].selectedDate) {
+                const dropdown = document.getElementById(type + 'TimeDropdown');
+                if (dropdown) {
+                    dropdown.classList.remove('active');
+                    dropdown.style.top = '';
+                    dropdown.style.bottom = '';
+                    dropdown.style.left = '';
+                }
+            }
+        });
+
+        container.appendChild(slot);
+    });
+}
+
+function selectTimeSlot(timeValue, timeDisplay, type) {
+    timePickerData[type].selectedTime = { value: timeValue, display: timeDisplay };
+    renderTimeSlots(type);
+    updateTimeInput(type);
+    closeAllTimeDropdowns(); // ✅ Cierra el selector después de elegir la hora
+}
+
+function renderTimeSlots(type) {
+    const selectedTime = timePickerData[type].selectedTime;
+    const slots = document.querySelectorAll(`#${type}TimeSlots .time-slot`);
+    
+    slots.forEach(slot => {
+        if (selectedTime && slot.textContent === selectedTime.display) {
+            slot.classList.add('selected');
+        } else {
+            slot.classList.remove('selected');
+        }
+    });
+}
+
+function updateTimeInput(type) {
+    const picker = timePickerData[type];
+    const input = document.getElementById(type === 'start' ? 'scheduleStartTime' : 'scheduleEndTime');
+
+    if (!input) return;
+
+    if (picker.selectedDate && picker.selectedTime) {
+        const date = picker.selectedDate;
+        const dateStr = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+        input.value = `${dateStr} - ${picker.selectedTime.display}`;
+        input.dataset.timeValue = picker.selectedTime.value;
+    }
+}
+
+function convertTo12Hour(time24) {
+    const [hour, min] = time24.split(':').map(Number);
+    const isPM = hour >= 12;
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    const period = isPM ? 'PM' : 'AM';
+    return `${displayHour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')} ${period}`;
+}
+
+// ========================================
+// NAVEGACIÓN Y SIDEBAR
 // ========================================
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebarOverlay') || document.querySelector('.sidebar-overlay');
     
-    if (sidebar) {
-        sidebar.classList.toggle('active');
-    }
+    if (sidebar) sidebar.classList.toggle('active');
+    if (overlay) overlay.classList.toggle('active');
+}
+
+function closeMobileSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay') || document.querySelector('.sidebar-overlay');
     
-    if (overlay) {
-        overlay.classList.toggle('active');
+    if (sidebar && sidebar.classList.contains('active')) {
+        sidebar.classList.remove('active');
+        if (overlay) overlay.classList.remove('active');
     }
 }
 
-// Cerrar sidebar al hacer clic en un nav-item (mobile)
-document.addEventListener('DOMContentLoaded', function() {
-    if (window.innerWidth <= 768) {
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', function() {
-                const sidebar = document.getElementById('sidebar');
-                const overlay = document.getElementById('sidebarOverlay') || document.querySelector('.sidebar-overlay');
-                
-                if (sidebar && sidebar.classList.contains('active')) {
-                    sidebar.classList.remove('active');
-                    if (overlay) overlay.classList.remove('active');
-                }
-            });
-        });
+function showSection(sectionName) {
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+        const itemText = item.textContent.toLowerCase();
+        if ((sectionName === 'schedules' && itemText.includes('horarios')) ||
+            (sectionName === 'appointments' && itemText.includes('agendar')) ||
+            (sectionName === 'classes' && itemText.includes('reporte')) ||
+            (sectionName === 'students' && itemText.includes('estudiantes')) ||
+            (sectionName === 'dashboard' && itemText.includes('dashboard'))) {
+            item.classList.add('active');
+        }
+    });
+    
+    document.querySelectorAll('.content-section').forEach(section => {
+        section.classList.remove('active');
+    });
+    
+    const targetSection = document.getElementById(sectionName + '-section');
+    if (targetSection) {
+        targetSection.classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-});
+    
+    if (sectionName === 'schedules') {
+        showScheduleView('main');
+        cargarHorariosDesdeDB();
+    } else if (sectionName === 'appointments') {
+        setTimeout(initializeAppointmentSection, 100);
+    }
+}
 
 // ========================================
-// TOGGLE DROPDOWN DE MI CUENTA
+// TEMA CLARO/OSCURO
+// ========================================
+document.addEventListener('DOMContentLoaded', function() {
+    const themeToggle = document.getElementById('theme-toggle');
+    if (!themeToggle) return;
+    
+    themeToggle.addEventListener('click', function() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateThemeIcon(newTheme);
+    });
+});
+
+function updateThemeIcon(theme) {
+    const themeIcon = document.getElementById('theme-icon');
+    const themeLabel = document.querySelector('.theme-label');
+    
+    if (themeIcon) {
+        themeIcon.className = theme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
+    }
+    if (themeLabel) {
+        themeLabel.textContent = theme === 'dark' ? 'Modo Oscuro' : 'Modo Claro';
+    }
+}
+
+// ========================================
+// DROPDOWN Y LOGOUT
 // ========================================
 function toggleDropdown() {
     const dropdownMenu = document.getElementById('navDropdownMenu');
     const dropdownToggle = document.querySelector('.nav-dropdown-toggle');
     
-    if (dropdownMenu) {
-        dropdownMenu.classList.toggle('active');
-    }
-    
-    if (dropdownToggle) {
-        dropdownToggle.classList.toggle('active');
-    }
+    if (dropdownMenu) dropdownMenu.classList.toggle('active');
+    if (dropdownToggle) dropdownToggle.classList.toggle('active');
 }
 
-// Cerrar dropdown al hacer click fuera
-document.addEventListener('click', function(event) {
-    const dropdown = document.querySelector('.nav-dropdown-container');
+function closeDropdown() {
     const dropdownMenu = document.getElementById('navDropdownMenu');
     const dropdownToggle = document.querySelector('.nav-dropdown-toggle');
     
-    if (dropdown && !dropdown.contains(event.target)) {
-        if (dropdownMenu) dropdownMenu.classList.remove('active');
-        if (dropdownToggle) dropdownToggle.classList.remove('active');
-    }
-});
+    if (dropdownMenu) dropdownMenu.classList.remove('active');
+    if (dropdownToggle) dropdownToggle.classList.remove('active');
+}
 
-// ========================================
-// LOGOUT CON CONFIRMACIÓN MEJORADA
-// ========================================
 function logout() {
-    // Crear overlay
     const overlay = document.createElement('div');
     overlay.className = 'custom-alert-overlay';
     
-    // Crear dialog
     const dialog = document.createElement('div');
     dialog.className = 'custom-alert-dialog';
     dialog.innerHTML = `
@@ -90,8 +491,6 @@ function logout() {
     
     overlay.appendChild(dialog);
     document.body.appendChild(overlay);
-    
-    // Mostrar con animación
     setTimeout(() => overlay.classList.add('show'), 10);
 }
 
@@ -105,17 +504,10 @@ function closeLogoutAlert() {
 
 function confirmLogout() {
     const overlay = document.querySelector('.custom-alert-overlay');
-    if (overlay) {
-        overlay.classList.remove('show');
-    }
+    if (overlay) overlay.classList.remove('show');
     
-    // Mostrar notificación de cierre
     showLogoutNotification();
-    
-    // Redirigir después de 1 segundo
-    setTimeout(() => {
-        window.location.href = '?logout=true';
-    }, 1000);
+    setTimeout(() => { window.location.href = '?logout=true'; }, 1000);
 }
 
 function showLogoutNotification() {
@@ -132,262 +524,142 @@ function showLogoutNotification() {
     `;
     
     document.body.appendChild(notification);
-    
     setTimeout(() => notification.classList.add('show'), 10);
 }
 
 // ========================================
-// CAMBIAR TEMA (CLARO/OSCURO)
+// MENSAJE DE BIENVENIDA Y BADGES
 // ========================================
-document.addEventListener('DOMContentLoaded', function() {
-    const themeToggle = document.getElementById('theme-toggle');
-    const themeIcon = document.getElementById('theme-icon');
-    const themeLabel = document.querySelector('.theme-label');
-    
-    if (!themeToggle || !themeIcon) return;
-    
-    // Cargar tema guardado o usar 'light' por defecto
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    updateThemeIcon(savedTheme);
-    
-    themeToggle.addEventListener('click', function() {
-        const currentTheme = document.documentElement.getAttribute('data-theme');
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        
-        document.documentElement.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-        updateThemeIcon(newTheme);
-    });
-    
-    function updateThemeIcon(theme) {
-        if (theme === 'dark') {
-            themeIcon.className = 'fas fa-moon';
-            if (themeLabel) themeLabel.textContent = 'Modo Oscuro';
-        } else {
-            themeIcon.className = 'fas fa-sun';
-            if (themeLabel) themeLabel.textContent = 'Modo Claro';
-        }
-    }
-});
-
-// ========================================
-// NAVEGACIÓN ENTRE SECCIONES
-// ========================================
-function showSection(sectionName) {
-    // Remover clase active de todos los nav-items
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.remove('active');
-    });
-    
-    // Buscar y activar el nav-item correspondiente
-    const navItems = document.querySelectorAll('.nav-item');
-    navItems.forEach(item => {
-        const itemText = item.textContent.toLowerCase();
-        if ((sectionName === 'schedules' && itemText.includes('horarios')) ||
-            (sectionName === 'classes' && itemText.includes('reporte')) ||
-            (sectionName === 'students' && itemText.includes('estudiantes')) ||
-            (sectionName === 'dashboard' && itemText.includes('dashboard'))) {
-            item.classList.add('active');
-        }
-    });
-    
-    console.log('Navegando a sección:', sectionName);
-    
-    // Ocultar todas las secciones
-    document.querySelectorAll('.content-section').forEach(section => {
-        section.classList.remove('active');
-    });
-    
-    // Mostrar la sección seleccionada
-    const targetSection = document.getElementById(sectionName + '-section');
-    if (targetSection) {
-        targetSection.classList.add('active');
-        
-        // Scroll suave hacia arriba al cambiar de sección
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-    
-    // Si es la sección de horarios, mostrar la vista principal por defecto
-    if (sectionName === 'schedules') {
-        showScheduleView('main');
-    }
-}
-
-// ========================================
-// ACTUALIZAR BADGES DE NAVEGACIÓN
-// ========================================
-function updateBadges() {
-    // Para Coordinador
-    const instructorBadge = document.getElementById('instructorBadge');
-    const ambienceBadge = document.getElementById('ambienceBadge');
-    
-    // Para Instructor
-    const classesBadge = document.getElementById('classesBadge');
-    const studentsBadge = document.getElementById('studentsBadge');
-    
-    // Aquí puedes hacer una petición AJAX para obtener los números reales
-    // Por ahora usamos valores de ejemplo
-    if (instructorBadge) {
-        instructorBadge.textContent = '5';
-    }
-    
-    if (ambienceBadge) {
-        ambienceBadge.textContent = '12';
-    }
-    
-    if (classesBadge) {
-        classesBadge.textContent = '3';
-    }
-    
-    if (studentsBadge) {
-        studentsBadge.textContent = '45';
-    }
-}
-
-// Actualizar badges al cargar la página
-document.addEventListener('DOMContentLoaded', updateBadges);
-
-// ========================================
-// MENSAJE DE BIENVENIDA
-// ========================================
-document.addEventListener('DOMContentLoaded', function() {
+function checkWelcomeMessage() {
     const urlParams = new URLSearchParams(window.location.search);
     const fromLogin = urlParams.get('fromLogin');
     
     if (fromLogin === 'true') {
         const welcomeMsg = document.getElementById('welcomeMessage');
-        
         if (welcomeMsg) {
             welcomeMsg.classList.add('show');
-            
-            // Ocultar después de 5 segundos
-            setTimeout(() => {
-                welcomeMsg.classList.remove('show');
-            }, 5000);
+            setTimeout(() => welcomeMsg.classList.remove('show'), 5000);
         }
-        
-        // Limpiar el parámetro de la URL sin recargar
         window.history.replaceState({}, document.title, window.location.pathname);
     }
-});
-
-// ========================================
-// ACTUALIZAR STATS (Dashboard)
-// ========================================
-function updateStats() {
-    // Actualizar estadísticas del dashboard
-    const totalClasses = document.getElementById('totalClasses');
-    const totalStudents = document.getElementById('totalStudents');
-    const totalSchedules = document.getElementById('totalSchedules');
-    
-    // Aquí puedes hacer peticiones AJAX para obtener datos reales
-    if (totalClasses) totalClasses.textContent = '8';
-    if (totalStudents) totalStudents.textContent = '156';
-    if (totalSchedules) totalSchedules.textContent = '12';
 }
 
-// Actualizar stats al cargar
-document.addEventListener('DOMContentLoaded', updateStats);
+function updateBadges() {
+    const badges = {
+        instructorBadge: '5',
+        ambienceBadge: '12',
+        classesBadge: '3',
+        studentsBadge: '45'
+    };
+    
+    Object.entries(badges).forEach(([id, value]) => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value;
+    });
+}
+
+function updateStats() {
+    const stats = {
+        totalClasses: '8',
+        totalStudents: '156',
+        totalSchedules: '12'
+    };
+    
+    Object.entries(stats).forEach(([id, value]) => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value;
+    });
+}
 
 // ========================================
-// FUNCIONES DE HORARIOS
+// GESTIÓN DE HORARIOS - VISTAS
 // ========================================
-
 function showScheduleView(view) {
-    // Ocultar todas las vistas
     document.querySelectorAll('.schedules-view').forEach(v => v.classList.remove('active'));
     
-    // Mostrar la vista seleccionada
     const viewMap = {
         'main': 'schedules-main',
         'create': 'schedules-create',
         'view': 'schedules-view'
     };
     
-    const viewId = viewMap[view];
-    if (viewId) {
-        const viewElement = document.getElementById(viewId);
-        if (viewElement) {
-            viewElement.classList.add('active');
+    const viewElement = document.getElementById(viewMap[view]);
+    if (viewElement) {
+        viewElement.classList.add('active');
+        if (view === 'create' && !horarioEnEdicion) {
+            limpiarFormularioHorario();
         }
     }
 }
 
+// ========================================
+// GESTIÓN DE HORARIOS - GENERACIÓN
+// ========================================
 function generateScheduleGrid() {
-    const startTime = document.getElementById('startTime').value;
-    const endTime = document.getElementById('endTime').value;
-    const blockDuration = parseInt(document.getElementById('blockDuration').value);
-    const breakDuration = parseInt(document.getElementById('breakDuration').value);
+    const scheduleName = document.getElementById('scheduleName');
+    const startTimeInput = document.getElementById('scheduleStartTime');
+    const endTimeInput = document.getElementById('scheduleEndTime');
     
-    if (!startTime || !endTime) {
-        alert('Por favor completa todos los campos requeridos');
+    if (!scheduleName || !startTimeInput || !endTimeInput) {
+        console.error('Elementos del formulario no encontrados');
         return;
     }
     
-    // Convertir horas a minutos
+    if (!scheduleName.value.trim()) {
+        alert('Por favor ingresa un nombre para el horario');
+        return;
+    }
+
+    if (!startTimeInput.value || !endTimeInput.value) {
+        alert('Por favor selecciona las horas de inicio y fin');
+        return;
+    }
+
+    const startTime = startTimeInput.dataset.timeValue || '07:00';
+    const endTime = endTimeInput.dataset.timeValue || '18:00';
+    
     const [startH, startM] = startTime.split(':').map(Number);
     const [endH, endM] = endTime.split(':').map(Number);
     const startMinutes = startH * 60 + startM;
     const endMinutes = endH * 60 + endM;
+    const blockDurationValue = 60;
     
     if (startMinutes >= endMinutes) {
         alert('La hora de fin debe ser mayor que la hora de inicio');
         return;
     }
     
-    // Generar bloques de tiempo
     const timeSlots = [];
     let currentTime = startMinutes;
     
-    while (currentTime + blockDuration <= endMinutes) {
+    while (currentTime + blockDurationValue <= endMinutes) {
         const blockStart = formatTime(currentTime);
-        const blockEnd = formatTime(currentTime + blockDuration);
+        const blockEnd = formatTime(currentTime + blockDurationValue);
         timeSlots.push({ start: blockStart, end: blockEnd });
-        currentTime += blockDuration + breakDuration;
+        currentTime += blockDurationValue;
     }
     
     if (timeSlots.length === 0) {
-        alert('No se pueden generar bloques con esta configuración. Verifica las horas y duraciones.');
+        alert('No se pueden generar bloques con esta configuración');
         return;
     }
     
-    // Obtener días seleccionados
-    const days = [];
-    const dayCheckboxes = document.querySelectorAll('.day-checkbox input');
-    const dayNames = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
     
-    dayCheckboxes.forEach((checkbox, index) => {
-        if (checkbox.checked) {
-            days.push(dayNames[index]);
-        }
-    });
-    
-    if (days.length === 0) {
-        alert('Selecciona al menos un día de la semana');
-        return;
-    }
-    
-    // Generar tabla
     const tableBody = document.getElementById('scheduleTableBody');
-    if (!tableBody) {
-        console.error('No se encontró el elemento scheduleTableBody');
-        return;
-    }
+    if (!tableBody) return;
     
     tableBody.innerHTML = '';
     
     timeSlots.forEach(slot => {
         const row = document.createElement('tr');
         
-        // Celda de hora
         const timeCell = document.createElement('td');
         timeCell.className = 'time-cell';
         timeCell.textContent = `${slot.start} - ${slot.end}`;
         row.appendChild(timeCell);
         
-        // Celdas para cada día
-        days.forEach(day => {
+        days.forEach(() => {
             const cell = document.createElement('td');
             cell.className = 'schedule-cell';
             cell.onclick = function() { openAssignModal(this); };
@@ -398,7 +670,6 @@ function generateScheduleGrid() {
         tableBody.appendChild(row);
     });
     
-    // Actualizar encabezados de la tabla
     const thead = document.querySelector('#scheduleGridCard .schedule-table thead tr');
     if (thead) {
         thead.innerHTML = '<th class="time-column">Hora</th>';
@@ -409,12 +680,9 @@ function generateScheduleGrid() {
         });
     }
     
-    // Mostrar la tarjeta con la tabla generada
     const scheduleGridCard = document.getElementById('scheduleGridCard');
     if (scheduleGridCard) {
         scheduleGridCard.style.display = 'block';
-        
-        // Scroll suave hacia la tabla
         setTimeout(() => {
             scheduleGridCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
@@ -427,8 +695,9 @@ function formatTime(minutes) {
     return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
 }
 
-let currentCell = null;
-
+// ========================================
+// GESTIÓN DE HORARIOS - MODAL
+// ========================================
 function openAssignModal(cell) {
     if (!cell) return;
     
@@ -438,24 +707,16 @@ function openAssignModal(cell) {
     if (modal) {
         modal.classList.add('active');
         
-        // Limpiar campos
-        const modalSubject = document.getElementById('modalSubject');
-        const modalInstructor = document.getElementById('modalInstructor');
-        const modalRoom = document.getElementById('modalRoom');
-        const modalNotes = document.getElementById('modalNotes');
-        
-        if (modalSubject) modalSubject.value = '';
-        if (modalInstructor) modalInstructor.value = '';
-        if (modalRoom) modalRoom.value = '';
-        if (modalNotes) modalNotes.value = '';
+        ['modalSubject', 'modalInstructor', 'modalRoom', 'modalNotes'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) element.value = '';
+        });
     }
 }
 
 function closeAssignModal() {
     const modal = document.getElementById('assignModal');
-    if (modal) {
-        modal.classList.remove('active');
-    }
+    if (modal) modal.classList.remove('active');
     currentCell = null;
 }
 
@@ -466,7 +727,7 @@ function assignClass() {
     const notes = document.getElementById('modalNotes');
     
     if (!subject || !instructor || !room) {
-        console.error('No se encontraron los campos del modal');
+        console.error('Campos del modal no encontrados');
         return;
     }
     
@@ -480,11 +741,9 @@ function assignClass() {
         return;
     }
     
-    // Obtener texto del instructor
     const instructorText = instructor.options[instructor.selectedIndex].text;
     const subjectText = subject.options[subject.selectedIndex].text;
     
-    // Colores por materia
     const subjectColors = {
         'matematicas': { bg: 'rgba(66, 133, 244, 0.1)', border: '#4285f4' },
         'fisica': { bg: 'rgba(52, 168, 83, 0.1)', border: '#34a853' },
@@ -495,7 +754,6 @@ function assignClass() {
     
     const colors = subjectColors[subject.value] || { bg: 'rgba(66, 133, 244, 0.1)', border: '#4285f4' };
     
-    // Crear contenido de la celda
     currentCell.className = 'schedule-cell assigned';
     currentCell.style.background = colors.bg;
     currentCell.style.borderLeft = `3px solid ${colors.border}`;
@@ -518,7 +776,6 @@ function assignClass() {
         </div>
     `;
     
-    // Guardar datos en la celda para persistencia
     currentCell.dataset.subject = subject.value;
     currentCell.dataset.instructor = instructor.value;
     currentCell.dataset.room = room.value;
@@ -537,182 +794,15 @@ function removeAssignment(button) {
     cell.innerHTML = '<div class="empty-cell"><i class="fa-solid fa-plus"></i></div>';
     cell.onclick = function() { openAssignModal(this); };
     
-    // Limpiar datos
     delete cell.dataset.subject;
     delete cell.dataset.instructor;
     delete cell.dataset.room;
     delete cell.dataset.notes;
 }
 
-function saveSchedule() {
-    const scheduleName = document.getElementById('scheduleName');
-    
-    if (!scheduleName || !scheduleName.value) {
-        alert('Por favor ingresa un nombre para el horario');
-        return;
-    }
-    
-    // Verificar que haya al menos una clase asignada
-    const assignedCells = document.querySelectorAll('.schedule-cell.assigned');
-    if (assignedCells.length === 0) {
-        alert('Debes asignar al menos una clase antes de guardar');
-        return;
-    }
-    
-    // Recopilar datos del horario
-    const scheduleData = {
-        name: scheduleName.value,
-        startTime: document.getElementById('startTime').value,
-        endTime: document.getElementById('endTime').value,
-        blockDuration: document.getElementById('blockDuration').value,
-        breakDuration: document.getElementById('breakDuration').value,
-        days: [],
-        assignments: []
-    };
-    
-    // Obtener días seleccionados
-    const dayCheckboxes = document.querySelectorAll('.day-checkbox input');
-    const dayNames = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
-    dayCheckboxes.forEach((checkbox, index) => {
-        if (checkbox.checked) {
-            scheduleData.days.push(dayNames[index]);
-        }
-    });
-    
-    // Obtener asignaciones
-    const rows = document.querySelectorAll('#scheduleTableBody tr');
-    rows.forEach((row, rowIndex) => {
-        const timeCell = row.querySelector('.time-cell');
-        if (timeCell) {
-            const timeCellText = timeCell.textContent;
-            const cells = row.querySelectorAll('.schedule-cell');
-            
-            cells.forEach((cell, cellIndex) => {
-                if (cell.classList.contains('assigned')) {
-                    scheduleData.assignments.push({
-                        time: timeCellText,
-                        day: scheduleData.days[cellIndex] || 'unknown',
-                        subject: cell.dataset.subject || '',
-                        instructor: cell.dataset.instructor || '',
-                        room: cell.dataset.room || '',
-                        notes: cell.dataset.notes || ''
-                    });
-                }
-            });
-        }
-    });
-    
-    console.log('Guardando horario:', scheduleData);
-    
-    // Aquí harías la petición AJAX a tu backend PHP
-    /*
-    fetch('save_schedule.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(scheduleData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Horario guardado exitosamente');
-            showScheduleView('main');
-        } else {
-            alert('Error al guardar: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error al guardar el horario');
-    });
-    */
-    
-    alert('Horario guardado exitosamente');
-    showScheduleView('main');
-}
-
-function viewSchedule(id) {
-    console.log('Ver horario ID:', id);
-    // Aquí cargarías los datos del horario desde el servidor
-    showScheduleView('view');
-}
-
-function editSchedule(id) {
-    console.log('Editar horario ID:', id);
-    // Aquí cargarías los datos del horario para editar
-    showScheduleView('create');
-}
-
-function deleteSchedule(id) {
-    if (confirm('¿Estás seguro de que deseas eliminar este horario?')) {
-        console.log('Eliminar horario ID:', id);
-        // Aquí harías la petición para eliminar
-        /*
-        fetch('delete_schedule.php?id=' + id, {
-            method: 'DELETE'
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Horario eliminado exitosamente');
-                location.reload();
-            } else {
-                alert('Error al eliminar: ' + data.message);
-            }
-        });
-        */
-        alert('Horario eliminado (funcionalidad de demostración)');
-    }
-}
-
 // ========================================
-// EVENT LISTENERS
+// GESTIÓN DE HORARIOS - BASE DE DATOS
 // ========================================
-document.addEventListener('DOMContentLoaded', function() {
-    // Cerrar modal al hacer clic fuera de él
-    document.addEventListener('click', function(event) {
-        const modal = document.getElementById('assignModal');
-        if (modal && event.target === modal) {
-            closeAssignModal();
-        }
-    });
-    
-    // Validar que la hora de fin sea mayor que la de inicio
-    const endTimeInput = document.getElementById('endTime');
-    if (endTimeInput) {
-        endTimeInput.addEventListener('change', function() {
-            const startTimeInput = document.getElementById('startTime');
-            if (!startTimeInput) return;
-            
-            const startTime = startTimeInput.value;
-            const endTime = this.value;
-            
-            if (startTime && endTime && endTime <= startTime) {
-                alert('La hora de fin debe ser mayor que la hora de inicio');
-                this.value = '';
-            }
-        });
-    }
-});
-// ========================================
-// AGREGAR ESTE CÓDIGO AL FINAL DE TU panel.js
-// ========================================
-
-// Variable global para el horario en edición
-let horarioEnEdicion = null;
-
-// Cargar horarios cuando se accede a la sección
-const originalShowSection = showSection;
-showSection = function(sectionName) {
-    originalShowSection(sectionName);
-    
-    if (sectionName === 'schedules') {
-        cargarHorariosDesdeDB();
-    }
-};
-
-// Cargar horarios desde la base de datos
 async function cargarHorariosDesdeDB() {
     try {
         const response = await fetch('cargar_horarios.php');
@@ -729,10 +819,8 @@ async function cargarHorariosDesdeDB() {
     }
 }
 
-// Mostrar horarios en el grid
 function mostrarHorariosEnGrid(horarios) {
     const container = document.querySelector('.schedules-grid');
-    
     if (!container) return;
     
     if (horarios.length === 0) {
@@ -796,7 +884,6 @@ function mostrarHorariosEnGrid(horarios) {
     }).join('');
 }
 
-// Actualizar badges de horarios
 function actualizarBadgesHorarios(horarios) {
     const classesBadge = document.getElementById('classesBadge');
     if (classesBadge) {
@@ -805,37 +892,30 @@ function actualizarBadgesHorarios(horarios) {
     }
 }
 
-// Guardar horario en la base de datos
-const originalSaveSchedule = saveSchedule;
-saveSchedule = async function() {
+async function saveSchedule() {
     const scheduleName = document.getElementById('scheduleName');
-    const startTime = document.getElementById('startTime');
-    const endTime = document.getElementById('endTime');
-    const blockDuration = document.getElementById('blockDuration');
-    const breakDuration = document.getElementById('breakDuration');
+    const startTimeInput = document.getElementById('scheduleStartTime');
+    const endTimeInput = document.getElementById('scheduleEndTime');
     
     if (!scheduleName || !scheduleName.value.trim()) {
         alert('Por favor ingresa un nombre para el horario');
         return;
     }
     
-    if (!startTime || !endTime) {
+    if (!startTimeInput || !endTimeInput) {
         alert('Por favor completa las horas de inicio y fin');
         return;
     }
-    
-    // Obtener días activos
-    const diasCheckboxes = document.querySelectorAll('.day-checkbox input[type="checkbox"]:checked');
-    const diasActivos = Array.from(diasCheckboxes).map(cb => {
-        return cb.parentElement.querySelector('span').textContent;
-    });
-    
-    if (diasActivos.length === 0) {
-        alert('Selecciona al menos un día de la semana');
+
+    if (!startTimeInput.value || !endTimeInput.value) {
+        alert('Por favor selecciona las horas de inicio y fin');
         return;
     }
+
+    const startTime = startTimeInput.dataset.timeValue || '07:00';
+    const endTime = endTimeInput.dataset.timeValue || '18:00';
+    const diasActivos = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
     
-    // Recopilar bloques asignados
     const bloques = [];
     const assignedCells = document.querySelectorAll('.schedule-cell.assigned');
     
@@ -859,10 +939,9 @@ saveSchedule = async function() {
     const horarioData = {
         id: horarioEnEdicion ? horarioEnEdicion.id : null,
         nombre_horario: scheduleName.value,
-        hora_inicio: startTime.value,
-        hora_fin: endTime.value,
-        duracion_bloque: parseInt(blockDuration.value),
-        descanso: parseInt(breakDuration.value),
+        hora_inicio: startTime,
+        hora_fin: endTime,
+        duracion_bloque: 60,
         dias_activos: diasActivos,
         bloques: bloques,
         template_tipo: 'semanal'
@@ -871,9 +950,7 @@ saveSchedule = async function() {
     try {
         const response = await fetch('guardar_horario.php', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(horarioData)
         });
         
@@ -889,11 +966,10 @@ saveSchedule = async function() {
         }
     } catch (error) {
         console.error('Error al guardar:', error);
-        alert('Error al guardar el horario. Por favor intenta de nuevo.');
+        alert('Error al guardar el horario');
     }
-};
+}
 
-// Ver horario (solo lectura)
 async function verHorarioDB(id) {
     try {
         const response = await fetch(`obtener_horario.php?id=${id}`);
@@ -906,40 +982,29 @@ async function verHorarioDB(id) {
             alert('Error: ' + data.message);
         }
     } catch (error) {
-        console.error('Error al cargar horario:', error);
+        console.error('Error:', error);
         alert('Error al cargar el horario');
     }
 }
 
-// Mostrar horario en vista de solo lectura
 function mostrarHorarioVisualizacion(horario) {
-    // Actualizar título
     const viewSection = document.getElementById('schedules-view');
     if (!viewSection) return;
     
     const header = viewSection.querySelector('.content-header h1');
-    if (header) {
-        header.textContent = horario.nombre_horario || 'Horario';
-    }
+    if (header) header.textContent = horario.nombre_horario || 'Horario';
     
-    // Generar la tabla
     const container = viewSection.querySelector('.schedule-view-container');
     if (!container) return;
     
     const diasActivos = horario.dias_activos || [];
     const bloques = horario.bloques || [];
-    
-    // Obtener todos los horarios únicos
     const horariosUnicos = [...new Set(bloques.map(b => b.hora))].sort();
     
-    // Generar encabezados
     let theadHTML = '<tr><th class="time-column">Hora</th>';
-    diasActivos.forEach(dia => {
-        theadHTML += `<th>${dia}</th>`;
-    });
+    diasActivos.forEach(dia => { theadHTML += `<th>${dia}</th>`; });
     theadHTML += '</tr>';
     
-    // Generar filas
     let tbodyHTML = '';
     horariosUnicos.forEach(hora => {
         tbodyHTML += '<tr>';
@@ -949,19 +1014,9 @@ function mostrarHorarioVisualizacion(horario) {
             const bloque = bloques.find(b => b.hora === hora && b.dia === dia);
             
             if (bloque) {
-                const subjectColors = {
-                    'matematicas': { bg: 'rgba(66, 133, 244, 0.1)', border: '#4285f4' },
-                    'fisica': { bg: 'rgba(52, 168, 83, 0.1)', border: '#34a853' },
-                    'quimica': { bg: 'rgba(251, 188, 4, 0.1)', border: '#fbbc04' },
-                    'ingles': { bg: 'rgba(234, 67, 53, 0.1)', border: '#ea4335' },
-                    'historia': { bg: 'rgba(156, 39, 176, 0.1)', border: '#9c27b0' }
-                };
-                
-                const colors = subjectColors[bloque.materia] || { bg: 'rgba(66, 133, 244, 0.1)', border: '#4285f4' };
-                
+                const colors = getSubjectColors(bloque.materia);
                 tbodyHTML += `
-                    <td class="schedule-cell assigned view-mode" 
-                        style="background: ${colors.bg}; border-left: 3px solid ${colors.border}">
+                    <td class="schedule-cell assigned view-mode" style="background: ${colors.bg}; border-left: 3px solid ${colors.border}">
                         <div class="assigned-cell">
                             <div class="cell-title">${bloque.materia || 'Sin materia'}</div>
                             <div class="cell-info">
@@ -985,15 +1040,8 @@ function mostrarHorarioVisualizacion(horario) {
             <tbody>${tbodyHTML}</tbody>
         </table>
     `;
-    
-    // Actualizar botón de editar en el header
-    const editBtn = viewSection.querySelector('.btn-primary');
-    if (editBtn) {
-        editBtn.onclick = function() { editarHorarioDB(horario.id); };
-    }
 }
 
-// Editar horario existente
 async function editarHorarioDB(id) {
     try {
         const response = await fetch(`obtener_horario.php?id=${id}`);
@@ -1007,41 +1055,56 @@ async function editarHorarioDB(id) {
             alert('Error: ' + data.message);
         }
     } catch (error) {
-        console.error('Error al cargar horario:', error);
-        alert('Error al cargar el horario para editar');
+        console.error('Error:', error);
+        alert('Error al cargar el horario');
     }
 }
 
-// Cargar datos del horario en el formulario
 function cargarDatosEnFormulario(horario) {
-    document.getElementById('scheduleName').value = horario.nombre_horario || '';
-    document.getElementById('startTime').value = horario.hora_inicio || '07:00';
-    document.getElementById('endTime').value = horario.hora_fin || '18:00';
-    document.getElementById('blockDuration').value = horario.duracion_bloque || 60;
-    document.getElementById('breakDuration').value = horario.descanso || 10;
+    const scheduleName = document.getElementById('scheduleName');
+    if (scheduleName) scheduleName.value = horario.nombre_horario || '';
     
-    // Marcar días activos
-    const diasCheckboxes = document.querySelectorAll('.day-checkbox');
-    diasCheckboxes.forEach(label => {
-        const checkbox = label.querySelector('input[type="checkbox"]');
-        const diaTexto = label.querySelector('span').textContent;
-        checkbox.checked = horario.dias_activos && horario.dias_activos.includes(diaTexto);
-    });
+    if (horario.hora_inicio) {
+        const startInput = document.getElementById('scheduleStartTime');
+        if (startInput) {
+            const today = new Date();
+            const dateStr = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
+            startInput.value = `${dateStr} - ${convertTo12Hour(horario.hora_inicio)}`;
+            startInput.dataset.timeValue = horario.hora_inicio;
+            
+            timePickerData.start.selectedDate = today;
+            timePickerData.start.selectedTime = {
+                value: horario.hora_inicio,
+                display: convertTo12Hour(horario.hora_inicio)
+            };
+        }
+    }
     
-    // Generar el grid
+    if (horario.hora_fin) {
+        const endInput = document.getElementById('scheduleEndTime');
+        if (endInput) {
+            const today = new Date();
+            const dateStr = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
+            endInput.value = `${dateStr} - ${convertTo12Hour(horario.hora_fin)}`;
+            endInput.dataset.timeValue = horario.hora_fin;
+            
+            timePickerData.end.selectedDate = today;
+            timePickerData.end.selectedTime = {
+                value: horario.hora_fin,
+                display: convertTo12Hour(horario.hora_fin)
+            };
+        }
+    }
+    
     generateScheduleGrid();
     
-    // Esperar a que se genere el grid y cargar los bloques
     setTimeout(() => {
         if (horario.bloques && Array.isArray(horario.bloques)) {
-            horario.bloques.forEach(bloque => {
-                cargarBloqueEnCelda(bloque);
-            });
+            horario.bloques.forEach(bloque => cargarBloqueEnCelda(bloque));
         }
     }, 200);
 }
 
-// Cargar un bloque específico en su celda
 function cargarBloqueEnCelda(bloque) {
     const rows = document.querySelectorAll('#scheduleTableBody tr');
     
@@ -1054,16 +1117,7 @@ function cargarBloqueEnCelda(bloque) {
             
             cells.forEach((cell, index) => {
                 if (headers[index] && headers[index].textContent === bloque.dia) {
-                    // Encontramos la celda correcta
-                    const subjectColors = {
-                        'matematicas': { bg: 'rgba(66, 133, 244, 0.1)', border: '#4285f4' },
-                        'fisica': { bg: 'rgba(52, 168, 83, 0.1)', border: '#34a853' },
-                        'quimica': { bg: 'rgba(251, 188, 4, 0.1)', border: '#fbbc04' },
-                        'ingles': { bg: 'rgba(234, 67, 53, 0.1)', border: '#ea4335' },
-                        'historia': { bg: 'rgba(156, 39, 176, 0.1)', border: '#9c27b0' }
-                    };
-                    
-                    const colors = subjectColors[bloque.materia] || { bg: 'rgba(66, 133, 244, 0.1)', border: '#4285f4' };
+                    const colors = getSubjectColors(bloque.materia);
                     
                     cell.className = 'schedule-cell assigned';
                     cell.style.background = colors.bg;
@@ -1092,7 +1146,6 @@ function cargarBloqueEnCelda(bloque) {
     });
 }
 
-// Eliminar horario
 async function eliminarHorarioDB(id) {
     if (!confirm('¿Estás seguro de que deseas eliminar este horario? Esta acción no se puede deshacer.')) {
         return;
@@ -1101,9 +1154,7 @@ async function eliminarHorarioDB(id) {
     try {
         const response = await fetch('eliminar_horario.php', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id: id })
         });
         
@@ -1116,46 +1167,182 @@ async function eliminarHorarioDB(id) {
             alert('Error: ' + data.message);
         }
     } catch (error) {
-        console.error('Error al eliminar:', error);
+        console.error('Error:', error);
         alert('Error al eliminar el horario');
     }
 }
 
-// Limpiar formulario
 function limpiarFormularioHorario() {
     horarioEnEdicion = null;
     
     const scheduleName = document.getElementById('scheduleName');
-    const startTime = document.getElementById('startTime');
-    const endTime = document.getElementById('endTime');
-    const blockDuration = document.getElementById('blockDuration');
-    const breakDuration = document.getElementById('breakDuration');
-    
     if (scheduleName) scheduleName.value = '';
-    if (startTime) startTime.value = '07:00';
-    if (endTime) endTime.value = '18:00';
-    if (blockDuration) blockDuration.value = '60';
-    if (breakDuration) breakDuration.value = '10';
     
-    const diasCheckboxes = document.querySelectorAll('.day-checkbox input[type="checkbox"]');
-    diasCheckboxes.forEach((cb, index) => {
-        cb.checked = index < 5; // Lun-Vie por defecto
+    ['start', 'end'].forEach(type => {
+        timePickerData[type].selectedDate = null;
+        timePickerData[type].selectedTime = null;
+        timePickerData[type].currentDate = new Date();
+        
+        const input = document.getElementById(type === 'start' ? 'scheduleStartTime' : 'scheduleEndTime');
+        if (input) {
+            input.value = '';
+            delete input.dataset.timeValue;
+        }
     });
     
     const scheduleGridCard = document.getElementById('scheduleGridCard');
-    if (scheduleGridCard) {
-        scheduleGridCard.style.display = 'none';
+    if (scheduleGridCard) scheduleGridCard.style.display = 'none';
+}
+
+function getSubjectColors(materia) {
+    const colors = {
+        'matematicas': { bg: 'rgba(66, 133, 244, 0.1)', border: '#4285f4' },
+        'fisica': { bg: 'rgba(52, 168, 83, 0.1)', border: '#34a853' },
+        'quimica': { bg: 'rgba(251, 188, 4, 0.1)', border: '#fbbc04' },
+        'ingles': { bg: 'rgba(234, 67, 53, 0.1)', border: '#ea4335' },
+        'historia': { bg: 'rgba(156, 39, 176, 0.1)', border: '#9c27b0' }
+    };
+    return colors[materia] || { bg: 'rgba(66, 133, 244, 0.1)', border: '#4285f4' };
+}
+
+// ========================================
+// AGENDAR CITAS - CALENDARIO
+// ========================================
+function initializeAppointmentSection() {
+    if (document.getElementById('calendarDays')) {
+        generateCalendar();
+        updateSelectedDateDisplay();
     }
 }
 
-// Sobreescribir la función showScheduleView para limpiar al crear nuevo
-const originalShowScheduleView = showScheduleView;
-showScheduleView = function(view) {
-    originalShowScheduleView(view);
+function generateCalendar() {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
     
-    if (view === 'create' && !horarioEnEdicion) {
-        limpiarFormularioHorario();
+    const calendarMonthEl = document.getElementById('calendarMonth');
+    if (calendarMonthEl) {
+        calendarMonthEl.textContent = `${monthNames[month]} ${year}`;
     }
-};
+    
+    const firstDay = new Date(year, month, 1).getDay();
+    const lastDate = new Date(year, month + 1, 0).getDate();
+    const prevLastDate = new Date(year, month, 0).getDate();
+    
+    const calendarDays = document.getElementById('calendarDays');
+    if (!calendarDays) return;
+    
+    calendarDays.innerHTML = '';
+    
+    for (let i = firstDay; i > 0; i--) {
+        const day = document.createElement('div');
+        day.className = 'calendar-day other-month';
+        day.textContent = prevLastDate - i + 1;
+        calendarDays.appendChild(day);
+    }
+    
+    const today = new Date();
+    for (let i = 1; i <= lastDate; i++) {
+        const day = document.createElement('div');
+        day.className = 'calendar-day';
+        day.textContent = i;
+        
+        if (year === today.getFullYear() && month === today.getMonth() && i === today.getDate()) {
+            day.classList.add('today');
+        }
+        
+        if (year === selectedDate.getFullYear() && month === selectedDate.getMonth() && i === selectedDate.getDate()) {
+            day.classList.add('selected');
+        }
+        
+        day.addEventListener('click', () => selectDate(year, month, i));
+        calendarDays.appendChild(day);
+    }
+    
+    const remainingDays = 42 - (firstDay + lastDate);
+    for (let i = 1; i <= remainingDays; i++) {
+        const day = document.createElement('div');
+        day.className = 'calendar-day other-month';
+        day.textContent = i;
+        calendarDays.appendChild(day);
+    }
+}
 
-console.log('✅ Funciones de gestión de horarios con BD cargadas correctamente');
+function previousMonth() {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    generateCalendar();
+}
+
+function nextMonth() {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    generateCalendar();
+}
+
+function selectDate(year, month, day) {
+    selectedDate = new Date(year, month, day);
+    generateCalendar();
+    updateSelectedDateDisplay();
+}
+
+function selectTodayAppointment() {
+    selectedDate = new Date();
+    currentDate = new Date();
+    generateCalendar();
+    updateSelectedDateDisplay();
+}
+
+function clearCalendar() {
+    document.querySelectorAll('.calendar-day.selected').forEach(el => {
+        el.classList.remove('selected');
+    });
+}
+
+function updateSelectedDateDisplay() {
+    const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    
+    const dayName = days[selectedDate.getDay()];
+    const day = selectedDate.getDate();
+    const month = months[selectedDate.getMonth()];
+    const year = selectedDate.getFullYear();
+    
+    const selectedDateEl = document.getElementById('selectedDate');
+    if (selectedDateEl) {
+        selectedDateEl.textContent = `${dayName} ${day} ${month} ${year}`;
+    }
+}
+
+function selectTime(element, time) {
+    document.querySelectorAll('.time-slot').forEach(slot => {
+        slot.classList.remove('active');
+    });
+    element.classList.add('active');
+}
+
+// ========================================
+// FUNCIONES DE DEMOSTRACIÓN
+// ========================================
+function viewSchedule(id) {
+    console.log('Ver horario ID:', id);
+    showScheduleView('view');
+}
+
+function editSchedule(id) {
+    console.log('Editar horario ID:', id);
+    showScheduleView('create');
+}
+
+function deleteSchedule(id) {
+    if (confirm('¿Estás seguro de que deseas eliminar este horario?')) {
+        console.log('Eliminar horario ID:', id);
+        alert('Horario eliminado (funcionalidad de demostración)');
+    }
+}
+
+// ========================================
+// LOG DE CONFIRMACIÓN
+// ========================================
+console.log('✅ Panel JavaScript cargado correctamente');
+console.log('✅ Time Picker integrado correctamente');
+console.log('✅ Funciones de horarios con BD activas');
+console.log('✅ Funciones de calendario de citas activas');
