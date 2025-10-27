@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadData();
     updateStats();
     initTheme();
+    initThemeToggleWithLabels(); // Nueva función
 });
 
 // === MODO OSCURO / CLARO ===
@@ -34,14 +35,9 @@ function toggleTheme() {
     saveTheme(newTheme);
 
     // Cambia el icono del botón
-    const icon = document.getElementById('theme-icon');
-    if (newTheme === 'dark') {
-        icon.classList.replace('fa-moon', 'fa-sun');
-        showNotification('Tema oscuro activado', 'success');
-    } else {
-        icon.classList.replace('fa-sun', 'fa-moon');
-        showNotification('Tema claro activado', 'success');
-    }
+    updateThemeIcon(newTheme); // Usar la nueva función
+    
+    showNotification(newTheme === 'dark' ? 'Tema oscuro activado' : 'Tema claro activado', 'success');
 }
 
 // Inicializar el tema al cargar la página
@@ -50,15 +46,37 @@ function initTheme() {
     document.documentElement.setAttribute('data-theme', savedTheme);
 
     // Ajustar icono correctamente
-    const icon = document.getElementById('theme-icon');
-    if (savedTheme === 'dark') {
-        icon.classList.replace('fa-moon', 'fa-sun');
-    } else {
-        icon.classList.replace('fa-sun', 'fa-moon');
-    }
+    updateThemeIcon(savedTheme);
+}
 
+// NUEVA FUNCIÓN: Inicializar el toggle con etiquetas de texto
+function initThemeToggleWithLabels() {
+    const themeToggle = document.getElementById('theme-toggle');
+    if (!themeToggle) return;
+    
+    const currentTheme = getTheme();
+    updateThemeIcon(currentTheme);
+    
     // Asignar evento al botón
-    document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+    themeToggle.addEventListener('click', toggleTheme);
+}
+
+// NUEVA FUNCIÓN: Actualizar icono y etiqueta del tema
+function updateThemeIcon(theme) {
+    const themeIcon = document.getElementById('theme-icon');
+    const themeLabel = document.querySelector('.theme-label');
+    
+    if (themeIcon) {
+        if (theme === 'dark') {
+            themeIcon.className = 'fas fa-sun';
+        } else {
+            themeIcon.className = 'fas fa-moon';
+        }
+    }
+    
+    if (themeLabel) {
+        themeLabel.textContent = theme === 'dark' ? 'Modo Oscuro' : 'Modo Claro';
+    }
 }
 
 // === LOGOUT FUNCTION - MEJORADA SIN CONFIRMACIÓN ===
