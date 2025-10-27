@@ -32,6 +32,48 @@ function initTheme() {
 }
 
 // ===========================================
+// TOGGLE PASSWORD VISIBILITY
+// ===========================================
+
+function togglePasswordVisibility(eyeIcon) {
+    const inputGroup = eyeIcon.closest('.input-group');
+    const passwordInput = inputGroup.querySelector('input');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        eyeIcon.classList.remove('fa-eye');
+        eyeIcon.classList.add('fa-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        eyeIcon.classList.remove('fa-eye-slash');
+        eyeIcon.classList.add('fa-eye');
+    }
+}
+
+function initPasswordToggle() {
+    // Seleccionar TODOS los íconos de ojo en ambos formularios
+    const allEyeIcons = document.querySelectorAll('.fa-eye, .fa-eye-slash');
+    
+    allEyeIcons.forEach(icon => {
+        // Remover listeners previos para evitar duplicados
+        const newIcon = icon.cloneNode(true);
+        icon.parentNode.replaceChild(newIcon, icon);
+        
+        // Agregar estilo de cursor
+        newIcon.style.cursor = 'pointer';
+        
+        // Agregar el event listener
+        newIcon.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            togglePasswordVisibility(this);
+        });
+    });
+    
+    console.log('Toggle de contraseña inicializado en', allEyeIcons.length, 'campos');
+}
+
+// ===========================================
 // TOGGLE FORM ORIGINAL
 // ===========================================
 
@@ -54,6 +96,9 @@ function toggleForm() {
             <button class="btn-ghost" onclick="toggleForm()">Register</button>
         `;
     }
+    
+    // Re-inicializar el toggle de contraseña después de cambiar formulario
+    setTimeout(initPasswordToggle, 100);
 }
 
 // ===========================================
@@ -563,6 +608,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Inicializar tema
     initTheme();
     
+    // Inicializar toggle de contraseña
+    initPasswordToggle();
+    
     // Estilos CSS
     const style = document.createElement('style');
     style.textContent = `
@@ -648,6 +696,25 @@ document.addEventListener('DOMContentLoaded', function() {
             margin-bottom: 4px;
         }
 
+        /* Estilos para toggle de contraseña */
+        .input-group .fa-eye,
+        .input-group .fa-eye-slash {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .input-group .fa-eye:hover,
+        .input-group .fa-eye-slash:hover {
+            color: var(--gradient-1) !important;
+            transform: scale(1.1);
+        }
+
+        .input-group .fa-eye:active,
+        .input-group .fa-eye-slash:active {
+            transform: scale(0.95);
+        }
+
         @media (max-width: 480px) {
             .external-validation-icons {
                 right: -35px;
@@ -664,7 +731,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.head.appendChild(style);
     
     validator = new FormValidator();
-    console.log('Sistema de validación y tema inicializados correctamente');
+    console.log('Sistema de validación, tema y toggle de contraseña inicializados correctamente');
 });
 
 // ===========================================

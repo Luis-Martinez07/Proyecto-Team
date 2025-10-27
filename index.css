@@ -452,7 +452,7 @@ body {
     --bg-container: #2d2d2d;
     --text-primary: #ffffff;  /* ✅ Blanco en modo oscuro */
     --text-secondary: #b0b0b0; /* ✅ Gris claro para texto secundario */
-    --text-secondary-input: #ffffff;
+    --text-secondary-input: #000000;
     --border-color: #ffffff;
     --panel-h1-p-color: #000000;
     --input-bg: #3a3a3a;
