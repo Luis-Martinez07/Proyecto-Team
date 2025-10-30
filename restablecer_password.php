@@ -1,30 +1,32 @@
 <?php
-// =============================================
-// ARCHIVO: restablecer_password.php
-// Formulario para establecer nueva contraseña
-// =============================================
+/**
+ * RESTABLECER PASSWORD CON CONFIRMACIÓN POR EMAIL
+ * Reemplaza tu restablecer_password.php con este
+ */
 
-// Mostrar errores para debugging
 ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-require_once 'config.php';
+// Cargar PHPMailer
+require_once __DIR__ . '/vendor/autoload.php';
+
+// Configuración general y correo
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/email_config.php';
+
 session_start();
+
 
 $token_valido = false;
 $mensaje_error = '';
 $datos = null;
-$debug_info = []; // Para ver qué está pasando
 
-// Verificar que el token existe y es válido
+// Verificar token
 if (isset($_GET['token'])) {
     $token = $_GET['token'];
-    $debug_info[] = "Token recibido: " . substr($token, 0, 10) . "...";
     
     try {
         $pdo = conectarDB();
-        $debug_info[] = "Conexión a BD exitosa";
         
         $stmt = $pdo->prepare("SELECT pr.*, u.nombre, u.email 
                                FROM password_resets pr 
@@ -33,16 +35,11 @@ if (isset($_GET['token'])) {
         $stmt->execute([$token]);
         $datos = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        $debug_info[] = "Consulta ejecutada";
-        $debug_info[] = "Datos encontrados: " . ($datos ? "SI" : "NO");
-        
         if ($datos) {
             $token_valido = true;
-            $debug_info[] = "Email: " . $datos['email'];
         } else {
-            // Verificar si el token existe pero está expirado o usado
-            $stmt2 = $pdo->prepare("SELECT token, fecha_expiracion, usado, 
-                                    (fecha_expiracion > NOW()) as no_expirado 
+            // Verificar si está expirado o usado
+            $stmt2 = $pdo->prepare("SELECT usado, (fecha_expiracion > NOW()) as no_expirado 
                                     FROM password_resets WHERE token = ?");
             $stmt2->execute([$token]);
             $check = $stmt2->fetch(PDO::FETCH_ASSOC);
@@ -51,7 +48,7 @@ if (isset($_GET['token'])) {
                 if ($check['usado'] == 1) {
                     $mensaje_error = "Este enlace ya fue utilizado. Solicita uno nuevo.";
                 } elseif ($check['no_expirado'] == 0) {
-                    $mensaje_error = "El enlace ha expirado. Solicita uno nuevo.";
+                    $mensaje_error = "El enlace ha expirado (válido por 1 hora). Solicita uno nuevo.";
                 } else {
                     $mensaje_error = "Error al validar el token.";
                 }
@@ -62,15 +59,14 @@ if (isset($_GET['token'])) {
         
     } catch (Exception $e) {
         error_log("Error al verificar token: " . $e->getMessage());
-        $mensaje_error = "Error del servidor: " . $e->getMessage();
-        $debug_info[] = "ERROR: " . $e->getMessage();
+        $mensaje_error = "Error del servidor. Intenta de nuevo.";
     }
 } else {
     header("Location: index.php");
     exit();
 }
 
-// Procesar el formulario de nueva contraseña
+// Procesar cambio de contraseña
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $token_valido) {
     $nueva_password = $_POST['password'];
     $confirmar_password = $_POST['confirmar_password'];
@@ -87,15 +83,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $token_valido) {
             // Hash de la nueva contraseña
             $password_hash = password_hash($nueva_password, PASSWORD_DEFAULT);
             
-            // Actualizar contraseña del usuario
+            // Actualizar contraseña
             $stmt = $pdo->prepare("UPDATE usuarios SET password = ? WHERE id = ?");
             $stmt->execute([$password_hash, $datos['usuario_id']]);
             
-            // Marcar el token como usado
+            // Marcar token como usado
             $stmt = $pdo->prepare("UPDATE password_resets SET usado = 1 WHERE token = ?");
             $stmt->execute([$token]);
             
-            // Redirigir al login con mensaje de éxito
+            // ========================================
+            // ENVIAR EMAIL DE CONFIRMACIÓN
+            // ========================================
+            $emailSender = new EmailSender();
+            $emailSender->enviarConfirmacionCambio($datos['email'], $datos['nombre']);
+            
+            // Redirigir al login
             header("Location: index.php?mensaje=Contraseña actualizada correctamente&tipo=exito");
             exit();
             
@@ -143,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $token_valido) {
         <?php if ($token_valido): ?>
             <i class="fas fa-lock recovery-icon"></i>
             <h2>Crear Nueva Contraseña</h2>
-            <p>Ingresa tu nueva contraseña para la cuenta de <strong><?php echo htmlspecialchars($datos['email']); ?></strong></p>
+            <p>Ingresa tu nueva contraseña para <strong><?php echo htmlspecialchars($datos['email']); ?></strong></p>
             
             <?php if ($mensaje_error): ?>
                 <div class="mensaje error">
@@ -183,12 +185,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $token_valido) {
         <?php endif; ?>
         
         <div class="back-login">
-            <a href="index.php"><i class="fa-solid fa-arrow-up-right-from-square"></i> Volver al login</a>
+            <a href="index.php"><i class="fa-solid fa-arrow-left"></i> Volver al login</a>
         </div>
     </div>
     
     <script>
-        // Validación de fortaleza de contraseña
+        // Validación de fortaleza
         const password = document.getElementById('password');
         const strengthBar = document.getElementById('strengthBar');
         const strengthText = document.getElementById('strengthText');
@@ -229,7 +231,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $token_valido) {
             });
         }
         
-        // Validar que las contraseñas coincidan
         const confirmar = document.getElementById('confirmar_password');
         if (confirmar) {
             confirmar.addEventListener('input', function() {
