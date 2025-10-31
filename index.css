@@ -8,7 +8,7 @@
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    background-image: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
+    background: white;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -154,13 +154,14 @@ body {
 
 /* Hover del enlace forgot password */
 .forgot-password a:hover {
-    color: var(--forgot-password) !important;
+    color: #2727F5 !important;
 }
 
 /* En modo oscuro, cambiar a azul claro */
 [data-theme="dark"] .forgot-password a:hover {
     color: #60a5fa !important;
 }
+
 /* Espaciador para el registro que simula el forgot password */
 .register-spacer {
     height: 20px;
@@ -211,31 +212,33 @@ body {
 }
 
 .social-icons a {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 45px;
-  height: 45px;
-  border: 1px solid #000000;
-  border-radius: 8px;
-  color: #000000;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 45px;
+    height: 45px;
+    border: 1px solid #000000;
+    border-radius: 8px;
+    color: #000000;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-size: 1.2rem;
 }
 
 .social-icons a:hover {
-  background: #000000;
-  color: white;
-  transform: translateY(-2px);
+    background: #000000;
+    color: white;
+    transform: translateY(-2px);
 }
 
-/* 👇 Este bloque hace que el icono cambie de color también */
+/* 👇 Fix para iconos en hover */
+.social-icons a:hover i {
+    color: white !important;
+}
+
 .social-icons a i {
-  color:;
-  transition: color 0.3s ease;
+    transition: color 0.3s ease;
 }
-
 
 .panel {
     position: absolute;
@@ -283,10 +286,10 @@ body {
 }
 
 .btn-ghost {
-    padding: 20px 25px  ;
+    padding: 20px 25px;
     background: transparent;
     color: white;
-    border: 2px solid white;
+    border: 1px solid white;
     border-radius: 10px;
     font-weight: 600;
     cursor: pointer;
@@ -314,8 +317,8 @@ body {
 }
 
 .btn-ghost:hover {
-    background: white;
-    color: #000000;
+    background: white !important;
+    color: #000000 !important;
     transform: translateY(-3px);
     box-shadow: 0 10px 25px rgba(0,0,0,0.2);
 }
@@ -436,7 +439,7 @@ body {
 :root {
     --bg-body: white;
     --bg-container: white;
-    --text-primary: #000000;  /* ✅ Negro en modo claro */
+    --text-primary: #000000;
     --text-secondary: #000000;
     --forgot-password: #2727F5;
     --border-color: #000000;
@@ -450,8 +453,8 @@ body {
 [data-theme="dark"] {
     --bg-body: black;
     --bg-container: #2d2d2d;
-    --text-primary: #ffffff;  /* ✅ Blanco en modo oscuro */
-    --text-secondary: #b0b0b0; /* ✅ Gris claro para texto secundario */
+    --text-primary: #ffffff;
+    --text-secondary: #b0b0b0;
     --text-secondary-input: #000000;
     --border-color: #ffffff;
     --panel-h1-p-color: #000000;
@@ -520,12 +523,6 @@ body {
     transition: all 0.3s ease;
 }
 
-[data-theme="dark"] .toggle-switch {
-    background: #0f172a;
-    box-shadow: inset 4px 4px 8px #020617, inset -4px -4px 8px #1e293b;
-}
-
-/* Toggle Switch - Active State */
 [data-theme="dark"] .toggle-switch {
     background: #2727F5;
     box-shadow: inset 4px 4px 8px #1a1ab8, inset -4px -4px 8px #3434ff;
@@ -611,6 +608,7 @@ body {
 .form-container p {
     color: var(--text-primary) !important;
 }
+
 .social-login p {
     color: var(--text-primary) !important;
 }
@@ -653,6 +651,10 @@ body {
     color: #000000 !important;
 }
 
+[data-theme="dark"] .social-icons a:hover i {
+    color: #000000 !important;
+}
+
 .forgot-password a {
     color: var(--text-secondary) !important;
 }
@@ -660,8 +662,22 @@ body {
 .panel {
     background: linear-gradient(155deg, var(--gradient-1) 50%, var(--gradient-2) 50%) !important;
 }
-.panel-content h1, .panel-content p, .btn-ghost {
+
+.panel-content h1, 
+.panel-content p {
     color: var(--panel-h1-p-color) !important;
+}
+
+/* Fix para btn-ghost en modo oscuro */
+[data-theme="dark"] .btn-ghost {
+    color: #000000 !important;
+    border-color: #000000 !important;
+}
+
+[data-theme="dark"] .btn-ghost:hover {
+    background: #000000 !important;
+    color: white !important;
+    border-color: #000000 !important;
 }
 
 [data-theme="dark"] .mensaje.exito {
