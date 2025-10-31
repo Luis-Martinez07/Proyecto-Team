@@ -33,7 +33,7 @@
             </div>
             
             <button type="submit" class="btn-submit">
-                <i class="fas fa-paper-plane"></i> Restablecer contraseña
+             Restablecer contraseña
             </button>
         </form>
         
