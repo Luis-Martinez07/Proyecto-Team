@@ -93,8 +93,8 @@ if (strlen($iniciales) == 0) {
         </div>
 
         <div class="nav-item" onclick="showSection('classes')">
-            <span class="nav-icon"><i class="fa-solid fa-chalkboard-teacher"></i></span>
-            <span>Reporte</span>
+            <span class="nav-icon"><i class="fa-solid fa-gears"></i></span>
+            <span>Configuración</span>
             <span class="nav-badge" id="classesBadge">0</span>
         </div>
         
@@ -157,7 +157,7 @@ if (strlen($iniciales) == 0) {
             
             <div class="acciones-rapidas">
                 <div class="accion-card" onclick="showSection('schedules')">
-                    <i class="fa-regular fa-calendar-days accion-icon"></i>
+                    <i class="fa-regular fa-calendar accion-icon"></i> 
                     <div>
                         <h3>Gestionar Horarios</h3>
                         <p>Administra y organiza tus horarios de clases de manera eficiente.</p>
@@ -165,10 +165,10 @@ if (strlen($iniciales) == 0) {
                 </div>
                 
                 <div class="accion-card" onclick="showSection('classes')">
-                    <i class="fa-regular fa-file accion-icon"></i>
+                    <i class="fa-solid fa-gear accion-icon"></i>
                     <div>
-                        <h3>Ver Reporte</h3>
-                        <p>Consulta el reporte detallado de tus clases y su desempeño.</p>
+                        <h3>Configuracion</h3>
+                        <p>Aqui puedes hacer los cambios en tu cuenta.</p>
                     </div>
                 </div>
                 
@@ -482,15 +482,181 @@ if (strlen($iniciales) == 0) {
         </div>
     </div>
 
-    <!-- SECCIÓN: CLASES -->
-    <div id="classes-section" class="content-section">
+  <!-- SECCIÓN: DE CONFIGURACION -->
+<div id="classes-section" class="content-section">
+    <!-- Vista Principal -->
+    <div id="config-main" class="schedules-view active">
         <div class="content-header">
             <div>
-                <h1>Reporte de Clases</h1>
-                <p>Consulta el reporte detallado de tus clases</p>
+                <h1>Configuración</h1>
+                <p>Aquí podrás cambiar configuraciones de tu cuenta.</p>
+            </div>
+            <button class="btn btn-primary" onclick="showConfigView('edit')">
+                <i class="fa-solid fa-user-edit"></i>
+                Editar información personal
+            </button>   
+        </div>
+
+        <!-- Tarjeta de información -->
+        <div class="schedules-grid">
+            <div class="schedule-card">
+                <div class="schedule-card-header">
+                    <div>
+                        <h3>Información Personal</h3>
+                        <p class="schedule-meta">
+                            <i class="fa-regular fa-user"></i>
+                            Actualiza tus datos personales
+                        </p>
+                    </div>
+                </div>
+                <div class="schedule-card-body">
+                    <div class="schedule-stats">
+                        <div class="stat-item">
+                            <i class="fa-regular fa-id-card"></i>
+                            <span>Nombre: <?php echo htmlspecialchars($usuario_nombre); ?></span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fa-regular fa-envelope"></i>
+                            <span><?php echo htmlspecialchars($usuario_email); ?></span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fa-regular fa-user"></i>
+                            <span>Instructor</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="schedule-card-footer">
+                    <button class="btn btn-primary btn-sm" onclick="showConfigView('edit')">
+                        <i class="fa-solid fa-edit"></i>
+                        Editar
+                    </button>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- Vista Formulario de Edición (oculta inicialmente) -->
+    <div id="config-edit" class="schedules-view">
+        <div class="content-header">
+            <button class="btn btn-secondary" onclick="showConfigView('main')">
+                <i class="fa-solid fa-arrow-left"></i>
+                Volver
+            </button>
+            <h2>Editar Información Personal</h2>
+        </div>
+
+        <div class="schedule-form-container">
+            <div class="form-card">
+                <div class="form-card-header">
+                    <h3><i class="fa-solid fa-user-edit"></i>Información Personal</h3>
+                </div>
+                <div class="form-card-body">
+                    <form id="editPersonalInfoForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Cédula</label>
+                                <input type="text" class="form-control" id="editCedula" 
+                                       placeholder="" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Teléfono</label>
+                                <input type="tel" class="form-control" id="editTelefono" 
+                                       placeholder="" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Fecha de Nacimiento *</label>
+                                <div class="time-picker-wrapper">
+                                    <input type="text" class="time-picker-input" placeholder="Seleccionar fecha" readonly id="editFechaNacimiento">
+                                    <i class="fa-regular fa-calendar time-picker-icon"></i>
+                                    <div class="time-picker-dropdown" id="birthDateDropdown">
+                                        <div class="calendar-section" style="width: 100%;">
+                                            <div class="calendar-header">
+                                                <button type="button" onclick="changeMonth(-1, 'birth')"><i class="fa-solid fa-chevron-left"></i></button>
+                                                <span class="calendar-month" id="birthCalendarMonth"></span>
+                                                <button type="button" onclick="changeMonth(1, 'birth')"><i class="fa-solid fa-chevron-right"></i></button>
+                                            </div>
+                                            <div class="calendar-weekdays">
+                                                <div class="calendar-weekday">Do</div>
+                                                <div class="calendar-weekday">Lu</div>
+                                                <div class="calendar-weekday">Ma</div>
+                                                <div class="calendar-weekday">Mi</div>
+                                                <div class="calendar-weekday">Ju</div>
+                                                <div class="calendar-weekday">Vi</div>
+                                                <div class="calendar-weekday">Sá</div>
+                                            </div>
+                                            <div class="calendar-days" id="birthCalendarDays"></div>
+                                            <div class="calendar-footer">
+                                                <button type="button" class="calendar-btn primary" onclick="selectToday('birth')">Hoy</button>
+                                                <button type="button" class="calendar-btn" onclick="clearSelection('birth')">Limpiar</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Fecha de Vinculación *</label>
+                                <div class="time-picker-wrapper">
+                                    <input type="text" class="time-picker-input" placeholder="Seleccionar fecha" readonly id="editFechaVinculacion">
+                                    <i class="fa-regular fa-calendar time-picker-icon"></i>
+                                    <div class="time-picker-dropdown" id="vinculacionDateDropdown">
+                                        <div class="calendar-section" style="width: 100%;">
+                                            <div class="calendar-header">
+                                                <button type="button" onclick="changeMonth(-1, 'vinculacion')"><i class="fa-solid fa-chevron-left"></i></button>
+                                                <span class="calendar-month" id="vinculacionCalendarMonth"></span>
+                                                <button type="button" onclick="changeMonth(1, 'vinculacion')"><i class="fa-solid fa-chevron-right"></i></button>
+                                            </div>
+                                            <div class="calendar-weekdays">
+                                                <div class="calendar-weekday">Do</div>
+                                                <div class="calendar-weekday">Lu</div>
+                                                <div class="calendar-weekday">Ma</div>
+                                                <div class="calendar-weekday">Mi</div>
+                                                <div class="calendar-weekday">Ju</div>
+                                                <div class="calendar-weekday">Vi</div>
+                                                <div class="calendar-weekday">Sá</div>
+                                            </div>
+                                            <div class="calendar-days" id="vinculacionCalendarDays"></div>
+                                            <div class="calendar-footer">
+                                                <button type="button" class="calendar-btn primary" onclick="selectToday('vinculacion')">Hoy</button>
+                                                <button type="button" class="calendar-btn" onclick="clearSelection('vinculacion')">Limpiar</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Título Profesional</label>
+                            <input type="text" class="form-control" id="editTituloProfesional" 
+                                   placeholder="">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Especialidad</label>
+                            <input type="text" class="form-control" id="editEspecialidad" 
+                                   placeholder="">
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" onclick="showConfigView('main')">
+                                <i class="fa-solid fa-times"></i>
+                                Cancelar
+                            </button>
+                            <button type="button" class="btn btn-primary" onclick="savePersonalInfo()">
+                                <i class="fa-solid fa-save"></i>
+                                Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
     <!-- SECCIÓN: ESTUDIANTES -->
     <div id="students-section" class="content-section">
@@ -499,61 +665,30 @@ if (strlen($iniciales) == 0) {
                 <h1>Administrar Estudiantes</h1>
                 <p>Gestiona la información de tus estudiantes</p>
             </div>
+            <button class="btn btn-primary" onclick="showStudentView('add')">
+                <i class="fa-solid fa-user-plus"></i>
+                Agregar Nuevo Estudiante
+            </button>
         </div>
     </div>
 </main>
-
-<!-- Modal para Asignar Clase -->
-<div class="modal" id="assignModal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Asignar Clase</h3>
-            <button class="modal-close" onclick="closeAssignModal()">
-                <i class="fa-solid fa-times"></i>
-            </button>
+<div id="classes-section" class="content-section">
+    <!-- Vista Principal -->
+    <div id="config-main" class="schedules-view active">
+        <div class="content-header">
+            <div>
+                <h1>Configuración</h1>
+                <p>Aquí podrás cambiar configuraciones de tu cuenta.</p>
+            </div>
+            <button class="btn btn-primary" onclick="showConfigView('edit')">
+                <i class="fa-solid fa-user-edit"></i>
+                Editar información personal
+            </button>   
         </div>
-        <div class="modal-body">
-            <div class="form-group">
-                <label>Materia *</label>
-                <select class="form-control" id="modalSubject">
-                    <option value="">Seleccionar materia...</option>
-                    <option value="matematicas">Matemáticas</option>
-                    <option value="fisica">Física</option>
-                    <option value="quimica">Química</option>
-                    <option value="ingles">Inglés</option>
-                    <option value="historia">Historia</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Instructor *</label>
-                <select class="form-control" id="modalInstructor">
-                    <option value="">Seleccionar instructor...</option>
-                    <option value="1">Prof. Juan García</option>
-                    <option value="2">Prof. María Rodríguez</option>
-                    <option value="3">Prof. Carlos López</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Aula/Salón *</label>
-                <input type="text" class="form-control" placeholder="Ej: Aula 101, Lab 2" id="modalRoom">
-            </div>
-            <div class="form-group">
-                <label>Notas (Opcional)</label>
-                <textarea class="form-control" rows="2" placeholder="Información adicional..." id="modalNotes"></textarea>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="closeAssignModal()">Cancelar</button>
-            <button class="btn btn-primary" onclick="assignClass()">
-                <i class="fa-solid fa-check"></i>
-                Asignar
-            </button>
-        </div>
-    </div>
-</div>
 
 <!-- Script JavaScript -->
 <script src="panel.js"></script>
+<script src="config-datepicker.js"></script>
 
 </body>
 </html>
