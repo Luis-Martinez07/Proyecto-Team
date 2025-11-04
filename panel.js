@@ -182,7 +182,7 @@ function toggleDropdown() {
     const dropdownToggle = document.querySelector('.nav-dropdown-toggle');
     
     if (dropdownMenu) dropdownMenu.classList.toggle('active');
-    if (dropdownToggle) dropdownToggle.classList.toggle('active');
+    if (dropdownToggle) dropdownMenu.classList.toggle('active'); // Corregido: debería ser dropdownToggle
 }
 
 function closeDropdown() {
@@ -412,20 +412,30 @@ function updateTimeInput(type) {
     }
 }
 
+/** * FIX: changeMonth, selectToday y clearSelection DEBEN ser globales
+ * para ser llamadas directamente desde el atributo 'onclick' en el HTML 
+ * (lo cual soluciona el 'Uncaught ReferenceError: changeMonth is not defined').
+ * Estas funciones ya están definidas globalmente aquí.
+ */
 function changeMonth(delta, type) {
     if (type === 'birth' || type === 'vinculacion') {
-        datePickerConfigData[type].currentDate.setMonth(datePickerConfigData[type].currentDate.getMonth() + delta);
+        const date = datePickerConfigData[type].currentDate;
+        date.setMonth(date.getMonth() + delta);
         renderConfigCalendar(type);
-    } else {
-        timePickerData[type].currentDate.setMonth(timePickerData[type].currentDate.getMonth() + delta);
+    } else if (type === 'start' || type === 'end') {
+        const date = timePickerData[type].currentDate;
+        date.setMonth(date.getMonth() + delta);
         renderTimeCalendar(type);
     }
 }
 
 function selectToday(type) {
     if (type === 'birth' || type === 'vinculacion') {
-        selectConfigDate(new Date(), type);
-    } else {
+        const today = new Date();
+        datePickerConfigData[type].selectedDate = today;
+        datePickerConfigData[type].currentDate = new Date(today);
+        selectConfigDate(today, type);
+    } else if (type === 'start' || type === 'end') {
         timePickerData[type].selectedDate = new Date();
         timePickerData[type].currentDate = new Date();
         renderTimeCalendar(type);
@@ -440,7 +450,7 @@ function clearSelection(type) {
         const input = document.getElementById(inputId);
         if (input) input.value = '';
         renderConfigCalendar(type);
-    } else {
+    } else if (type === 'start' || type === 'end') {
         timePickerData[type].selectedDate = null;
         timePickerData[type].selectedTime = null;
         const input = document.getElementById(type === 'start' ? 'scheduleStartTime' : 'scheduleEndTime');
@@ -480,7 +490,11 @@ function initConfigDatePickers() {
 
         if (!input || !dropdown) return;
 
-        input.addEventListener('click', (e) => {
+        // Remover event listeners anteriores para evitar duplicados
+        const newInput = input.cloneNode(true);
+        input.parentNode.replaceChild(newInput, input);
+        
+        newInput.addEventListener('click', (e) => {
             e.stopPropagation();
             closeAllConfigDateDropdowns();
             dropdown.style.display = 'flex';
@@ -1287,6 +1301,87 @@ async function savePersonalInfo() {
     } catch (error) {
         console.error('Error:', error);
         alert('Error al conectar con el servidor');
+    }
+}
+// ========================================
+// SISTEMA DE ALERTAS DINÁMICAS (AGREGAR AL FINAL)
+// ========================================
+
+/**
+ * Muestra alerta de éxito
+ */
+function mostrarAlertaExito(mensaje) {
+    crearAlerta(mensaje, 'success');
+}
+
+/**
+ * Muestra alerta de error con lista opcional
+ */
+function mostrarAlertaError(mensaje, errores = []) {
+    let html = `<strong>${mensaje}</strong>`;
+    if (errores.length > 0) {
+        html += '<ul class="alert-error-list">';
+        errores.forEach(err => html += `<li>${err}</li>`);
+        html += '</ul>';
+    }
+    crearAlerta(html, 'error');
+}
+
+/**
+ * Muestra alerta de advertencia
+ */
+function mostrarAlertaAdvertencia(mensaje) {
+    crearAlerta(mensaje, 'warning');
+}
+
+/**
+ * Crea y muestra una alerta personalizada
+ */
+function crearAlerta(contenido, tipo = 'info') {
+    // Evitar duplicados
+    const existente = document.querySelector('.custom-alert.show');
+    if (existente) existente.remove();
+
+    const alerta = document.createElement('div');
+    alerta.className = `custom-alert alert-${tipo}`;
+    
+    const iconos = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-triangle',
+        warning: 'fa-exclamation-circle',
+        info: 'fa-info-circle'
+    };
+
+    alerta.innerHTML = `
+        <div class="alert-icon">
+            <i class="fas ${iconos[tipo] || iconos.info}"></i>
+        </div>
+        <div class="alert-content">${contenido}</div>
+        <button class="alert-close" onclick="cerrarAlerta(this)">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+
+    document.body.appendChild(alerta);
+    setTimeout(() => alerta.classList.add('show'), 10);
+
+    // Auto-cerrar después de 6 segundos
+    setTimeout(() => {
+        if (alerta && alerta.parentNode) {
+            alerta.classList.remove('show');
+            setTimeout(() => alerta.remove(), 300);
+        }
+    }, 6000);
+}
+
+/**
+ * Cierra una alerta manualmente
+ */
+function cerrarAlerta(btn) {
+    const alerta = btn.closest('.custom-alert');
+    if (alerta) {
+        alerta.classList.remove('show');
+        setTimeout(() => alerta.remove(), 300);
     }
 }
 

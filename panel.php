@@ -48,14 +48,17 @@ if (strlen($iniciales) == 0) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="panel.css">
-    <link href="/src/style.css" rel="stylesheet">
     <title>Panel Instructor</title>
+
+    <!-- FLATPICKR: Selectores bonitos de fecha y hora -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </head>
 <body>
 
 <!-- Mensaje de bienvenida -->
 <div class="welcome-message" id="welcomeMessage">
-    <h3>Bienvenido Instructor <i class="fas fa-check-circle"></i></h3>
+    <h3>Bienvenido Instructor</h3>
     <p>Hola <?php echo htmlspecialchars($usuario_nombre); ?>, has accedido exitosamente al panel de Instructor.</p>
 </div>
 
@@ -299,364 +302,245 @@ if (strlen($iniciales) == 0) {
             <div class="schedule-form-container">
                 <!-- Paso 1: Configuración Básica -->
                <div class="container">
-        <div class="form-card">
-            <div class="form-card-header">
-                <h3><i class="fa-solid fa-gear"></i> Configuración Básica</h3>
+                    <div class="form-card">
+                        <div class="form-card-header">
+                            <h3><i class="fa-solid fa-gear"></i> Configuración Básica</h3>
+                        </div>
+                        <div class="form-card-body">
+                            <div class="form-group">
+                                <label>Nombre del Horario *</label>
+                                <input type="text" class="form-control" placeholder="Ej: Horario Semestre 2025-1" id="scheduleName">
+                            </div>
+                            
+                            <!-- NUEVOS CAMPOS: HORA DE INICIO Y FIN -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Hora de Inicio *</label>
+                                    <input type="text" class="form-control" id="horaInicio" placeholder="08:00 AM" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Hora de Fin *</label>
+                                    <input type="text" class="form-control" id="horaFin" placeholder="06:00 PM" required>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <button class="btn btn-primary" onclick="generateScheduleGrid()">
+                                    <i class="fa-solid fa-table"></i>
+                                    Generar Tabla de Horario
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Paso 2: Tabla de Horario -->
+                    <div class="form-card" id="scheduleGridCard" style="display: none;">
+                        <div class="form-card-header">
+                            <h3><i class="fa-solid fa-table-cells"></i> Asignación de Clases</h3>
+                            <div class="legend">
+                                <span class="legend-item"><span class="color-box" style="background: #4285f4;"></span> Matemáticas</span>
+                                <span class="legend-item"><span class="color-box" style="background: #34a853;"></span> Ciencias</span>
+                                <span class="legend-item"><span class="color-box" style="background: #fbbc04;"></span> Idiomas</span>
+                            </div>
+                        </div>
+                        <div class="form-card-body">
+                            <div class="schedule-grid-container">
+                                <table class="schedule-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="time-column">Hora</th>
+                                            <th>Lunes</th>
+                                            <th>Martes</th>
+                                            <th>Miércoles</th>
+                                            <th>Jueves</th>
+                                            <th>Viernes</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="scheduleTableBody">
+                                        <!-- Se genera dinámicamente -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="form-actions">
+                                <button class="btn btn-secondary" onclick="showScheduleView('main')">
+                                    <i class="fa-solid fa-times"></i>
+                                    Cancelar
+                                </button>
+                                <button class="btn btn-primary" onclick="saveSchedule()">
+                                    <i class="fa-solid fa-save"></i>
+                                    Guardar Horario
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="form-card-body">
-                <div class="form-group">
-                    <label>Nombre del Horario *</label>
-                    <input type="text" class="form-control" placeholder="Ej: Horario Semestre 2025-1" id="scheduleName">
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Hora de Inicio *</label>
-                        <div class="time-picker-wrapper">
-                            <input type="text" class="time-picker-input" placeholder="Seleccionar hora" readonly id="scheduleStartTime">
-                            <i class="fa-regular fa-clock time-picker-icon"></i>
-                            <div class="time-picker-dropdown" id="startTimeDropdown">
-                                <div class="calendar-section">
-                                    <div class="calendar-header">
-                                        <button onclick="changeMonth(-1, 'start')"><i class="fa-solid fa-chevron-left"></i></button>
-                                        <span class="calendar-month" id="startCalendarMonth"></span>
-                                        <button onclick="changeMonth(1, 'start')"><i class="fa-solid fa-chevron-right"></i></button>
-                                    </div>
-                                    <div class="calendar-weekdays">
-                                        <div class="calendar-weekday">Do</div>
-                                        <div class="calendar-weekday">Lu</div>
-                                        <div class="calendar-weekday">Ma</div>
-                                        <div class="calendar-weekday">Mi</div>
-                                        <div class="calendar-weekday">Ju</div>
-                                        <div class="calendar-weekday">Vi</div>
-                                        <div class="calendar-weekday">Sá</div>
-                                    </div>
-                                    <div class="calendar-days" id="startCalendarDays"></div>
-                                    <div class="calendar-footer">
-                                        <button class="calendar-btn primary" onclick="selectToday('start')">Hoy</button>
-                                        <button class="calendar-btn" onclick="clearSelection('start')">Limpiar</button>
-                                    </div>
-                                </div>
-                                <div class="time-section">
-                                    <div class="time-header">
-                                        <i class="fa-regular fa-clock"></i>
-                                        <span>Seleccionar hora</span>
-                                    </div>
-                                    <div class="time-slots" id="startTimeSlots"></div>
-                                </div>
-                            </div>
-                        </div>
+
+            <!-- Vista Ver Horario (Solo Lectura) -->
+            <div id="schedules-view" class="schedules-view">
+                <div class="content-header">
+                    <button class="btn btn-secondary" onclick="showScheduleView('main')">
+                        <i class="fa-solid fa-arrow-left"></i>
+                        Volver
+                    </button>
+                    <div>
+                        <h1>Horario Semestre</h1>
+                        <p>Visualización completa del horario académico</p>
                     </div>
-                    <div class="form-group">
-                        <label>Hora de Fin *</label>
-                        <div class="time-picker-wrapper">
-                            <input type="text" class="time-picker-input" placeholder="Seleccionar hora" readonly id="scheduleEndTime">
-                            <i class="fa-regular fa-clock time-picker-icon"></i>
-                            <div class="time-picker-dropdown" id="endTimeDropdown">
-                                <div class="calendar-section">
-                                    <div class="calendar-header">
-                                        <button onclick="changeMonth(-1, 'end')"><i class="fa-solid fa-chevron-left"></i></button>
-                                        <span class="calendar-month" id="endCalendarMonth"></span>
-                                        <button onclick="changeMonth(1, 'end')"><i class="fa-solid fa-chevron-right"></i></button>
-                                    </div>
-                                    <div class="calendar-weekdays">
-                                        <div class="calendar-weekday">Do</div>
-                                        <div class="calendar-weekday">Lu</div>
-                                        <div class="calendar-weekday">Ma</div>
-                                        <div class="calendar-weekday">Mi</div>
-                                        <div class="calendar-weekday">Ju</div>
-                                        <div class="calendar-weekday">Vi</div>
-                                        <div class="calendar-weekday">Sá</div>
-                                    </div>
-                                    <div class="calendar-days" id="endCalendarDays"></div>
-                                    <div class="calendar-footer">
-                                        <button class="calendar-btn primary" onclick="selectToday('end')">Hoy</button>
-                                        <button class="calendar-btn" onclick="clearSelection('end')">Limpiar</button>
-                                    </div>
-                                </div>
-                                <div class="time-section">
-                                    <div class="time-header">
-                                        <i class="fa-regular fa-clock"></i>
-                                        <span>Seleccionar hora</span>
-                                    </div>
-                                    <div class="time-slots" id="endTimeSlots"></div>
-                                </div>
-                            </div>
-                        </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-secondary">
+                            <i class="fa-solid fa-download"></i>
+                            Exportar PDF
+                        </button>
+                        <button class="btn btn-primary" onclick="editSchedule(1)">
+                            <i class="fa-solid fa-edit"></i>
+                            Editar
+                        </button>
                     </div>
                 </div>
-                
-                <button class="btn btn-primary" onclick="generateScheduleGrid()">
-                    <i class="fa-solid fa-table"></i>
-                    Generar Tabla de Horario
-                </button>
+
+                <div class="schedule-view-container">
+                    <table class="schedule-table view-mode">
+                        <thead>
+                            <tr>
+                                <th class="time-column">Hora</th>
+                                <th>Lunes</th>
+                                <th>Martes</th>
+                                <th>Miércoles</th>
+                                <th>Jueves</th>
+                                <th>Viernes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Contenido generado dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- SECCIÓN: DE CONFIGURACION -->
+    <div id="classes-section" class="content-section">
+        <!-- Vista Principal -->
+        <div id="config-main" class="schedules-view active">
+            <div class="content-header">
+                <div>
+                    <h1>Configuración</h1>
+                    <p>Aquí podrás cambiar configuraciones de tu cuenta.</p>
+                </div>
+                <button class="btn btn-primary" onclick="showConfigView('edit')">
+                    <i class="fa-solid fa-user-edit"></i>
+                    Editar información personal
+                </button>   
+            </div>
 
-                <!-- Paso 2: Tabla de Horario -->
-                <div class="form-card" id="scheduleGridCard" style="display: none;">
-                    <div class="form-card-header">
-                        <h3><i class="fa-solid fa-table-cells"></i> Asignación de Clases</h3>
-                        <div class="legend">
-                            <span class="legend-item"><span class="color-box" style="background: #4285f4;"></span> Matemáticas</span>
-                            <span class="legend-item"><span class="color-box" style="background: #34a853;"></span> Ciencias</span>
-                            <span class="legend-item"><span class="color-box" style="background: #fbbc04;"></span> Idiomas</span>
+            <!-- Tarjeta de información -->
+            <div class="schedules-grid">
+                <div class="schedule-card">
+                    <div class="schedule-card-header">
+                        <div>
+                            <h3>Información Personal</h3>
+                            <p class="schedule-meta">
+                                <i class="fa-regular fa-user"></i>
+                                Actualiza tus datos personales
+                            </p>
                         </div>
                     </div>
-                    <div class="form-card-body">
-                        <div class="schedule-grid-container">
-                            <table class="schedule-table">
-                                <thead>
-                                    <tr>
-                                        <th class="time-column">Hora</th>
-                                        <th>Lunes</th>
-                                        <th>Martes</th>
-                                        <th>Miércoles</th>
-                                        <th>Jueves</th>
-                                        <th>Viernes</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="scheduleTableBody">
-                                    <!-- Se genera dinámicamente -->
-                                </tbody>
-                            </table>
+                    <div class="schedule-card-body">
+                        <div class="schedule-stats">
+                            <div class="stat-item">
+                                <i class="fa-regular fa-id-card"></i>
+                                <span>Nombre: <?php echo htmlspecialchars($usuario_nombre); ?></span>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fa-regular fa-envelope"></i>
+                                <span><?php echo htmlspecialchars($usuario_email); ?></span>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fa-regular fa-user"></i>
+                                <span>Instructor</span>
+                            </div>
                         </div>
-
-                        <div class="form-actions">
-                            <button class="btn btn-secondary" onclick="showScheduleView('main')">
-                                <i class="fa-solid fa-times"></i>
-                                Cancelar
-                            </button>
-                            <button class="btn btn-primary" onclick="saveSchedule()">
-                                <i class="fa-solid fa-save"></i>
-                                Guardar Horario
-                            </button>
-                        </div>
+                    </div>
+                    <div class="schedule-card-footer">
+                        <button class="btn btn-primary btn-sm" onclick="showConfigView('edit')">
+                            <i class="fa-solid fa-edit"></i>
+                            Editar
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Vista Ver Horario (Solo Lectura) -->
-        <div id="schedules-view" class="schedules-view">
+        <!-- Vista Formulario de Edición -->
+        <div id="config-edit" class="schedules-view">
             <div class="content-header">
-                <button class="btn btn-secondary" onclick="showScheduleView('main')">
+                <button class="btn btn-secondary" onclick="showConfigView('main')">
                     <i class="fa-solid fa-arrow-left"></i>
                     Volver
                 </button>
-                <div>
-                    <h1>Horario Semestre 2025-1</h1>
-                    <p>Visualización completa del horario académico</p>
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn btn-secondary">
-                        <i class="fa-solid fa-download"></i>
-                        Exportar PDF
-                    </button>
-                    <button class="btn btn-primary" onclick="editSchedule(1)">
-                        <i class="fa-solid fa-edit"></i>
-                        Editar
-                    </button>
-                </div>
+                <h2>Editar Información Personal</h2>
             </div>
 
-            <div class="schedule-view-container">
-                <table class="schedule-table view-mode">
-                    <thead>
-                        <tr>
-                            <th class="time-column">Hora</th>
-                            <th>Lunes</th>
-                            <th>Martes</th>
-                            <th>Miércoles</th>
-                            <th>Jueves</th>
-                            <th>Viernes</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Contenido generado dinámicamente -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-  <!-- SECCIÓN: DE CONFIGURACION -->
-<div id="classes-section" class="content-section">
-    <!-- Vista Principal -->
-    <div id="config-main" class="schedules-view active">
-        <div class="content-header">
-            <div>
-                <h1>Configuración</h1>
-                <p>Aquí podrás cambiar configuraciones de tu cuenta.</p>
-            </div>
-            <button class="btn btn-primary" onclick="showConfigView('edit')">
-                <i class="fa-solid fa-user-edit"></i>
-                Editar información personal
-            </button>   
-        </div>
-
-        <!-- Tarjeta de información -->
-        <div class="schedules-grid">
-            <div class="schedule-card">
-                <div class="schedule-card-header">
-                    <div>
-                        <h3>Información Personal</h3>
-                        <p class="schedule-meta">
-                            <i class="fa-regular fa-user"></i>
-                            Actualiza tus datos personales
-                        </p>
+            <div class="schedule-form-container">
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <h3><i class="fa-solid fa-user-edit"></i> Información Personal</h3>
                     </div>
-                </div>
-                <div class="schedule-card-body">
-                    <div class="schedule-stats">
-                        <div class="stat-item">
-                            <i class="fa-regular fa-id-card"></i>
-                            <span>Nombre: <?php echo htmlspecialchars($usuario_nombre); ?></span>
-                        </div>
-                        <div class="stat-item">
-                            <i class="fa-regular fa-envelope"></i>
-                            <span><?php echo htmlspecialchars($usuario_email); ?></span>
-                        </div>
-                        <div class="stat-item">
-                            <i class="fa-regular fa-user"></i>
-                            <span>Instructor</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="schedule-card-footer">
-                    <button class="btn btn-primary btn-sm" onclick="showConfigView('edit')">
-                        <i class="fa-solid fa-edit"></i>
-                        Editar
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Vista Formulario de Edición (oculta inicialmente) -->
-    <div id="config-edit" class="schedules-view">
-        <div class="content-header">
-            <button class="btn btn-secondary" onclick="showConfigView('main')">
-                <i class="fa-solid fa-arrow-left"></i>
-                Volver
-            </button>
-            <h2>Editar Información Personal</h2>
-        </div>
-
-        <div class="schedule-form-container">
-            <div class="form-card">
-                <div class="form-card-header">
-                    <h3><i class="fa-solid fa-user-edit"></i>Información Personal</h3>
-                </div>
-                <div class="form-card-body">
-                    <form id="editPersonalInfoForm">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Cédula</label>
-                                <input type="text" class="form-control" id="editCedula" 
-                                       placeholder="" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Teléfono</label>
-                                <input type="tel" class="form-control" id="editTelefono" 
-                                       placeholder="" required>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Fecha de Nacimiento *</label>
-                                <div class="time-picker-wrapper">
-                                    <input type="text" class="time-picker-input" placeholder="Seleccionar fecha" readonly id="editFechaNacimiento">
-                                    <i class="fa-regular fa-calendar time-picker-icon"></i>
-                                    <div class="time-picker-dropdown" id="birthDateDropdown">
-                                        <div class="calendar-section" style="width: 100%;">
-                                            <div class="calendar-header">
-                                                <button type="button" onclick="changeMonth(-1, 'birth')"><i class="fa-solid fa-chevron-left"></i></button>
-                                                <span class="calendar-month" id="birthCalendarMonth"></span>
-                                                <button type="button" onclick="changeMonth(1, 'birth')"><i class="fa-solid fa-chevron-right"></i></button>
-                                            </div>
-                                            <div class="calendar-weekdays">
-                                                <div class="calendar-weekday">Do</div>
-                                                <div class="calendar-weekday">Lu</div>
-                                                <div class="calendar-weekday">Ma</div>
-                                                <div class="calendar-weekday">Mi</div>
-                                                <div class="calendar-weekday">Ju</div>
-                                                <div class="calendar-weekday">Vi</div>
-                                                <div class="calendar-weekday">Sá</div>
-                                            </div>
-                                            <div class="calendar-days" id="birthCalendarDays"></div>
-                                            <div class="calendar-footer">
-                                                <button type="button" class="calendar-btn primary" onclick="selectToday('birth')">Hoy</button>
-                                                <button type="button" class="calendar-btn" onclick="clearSelection('birth')">Limpiar</button>
-                                            </div>
-                                        </div>
-                                    </div>
+                    <div class="form-card-body">
+                        <form id="editPersonalInfoForm">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Cédula</label>
+                                    <input type="text" class="form-control" id="editCedula" placeholder="" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Teléfono</label>
+                                    <input type="tel" class="form-control" id="editTelefono" placeholder="" required>
                                 </div>
                             </div>
 
-                            <div class="form-group">
-                                <label>Fecha de Vinculación *</label>
-                                <div class="time-picker-wrapper">
-                                    <input type="text" class="time-picker-input" placeholder="Seleccionar fecha" readonly id="editFechaVinculacion">
-                                    <i class="fa-regular fa-calendar time-picker-icon"></i>
-                                    <div class="time-picker-dropdown" id="vinculacionDateDropdown">
-                                        <div class="calendar-section" style="width: 100%;">
-                                            <div class="calendar-header">
-                                                <button type="button" onclick="changeMonth(-1, 'vinculacion')"><i class="fa-solid fa-chevron-left"></i></button>
-                                                <span class="calendar-month" id="vinculacionCalendarMonth"></span>
-                                                <button type="button" onclick="changeMonth(1, 'vinculacion')"><i class="fa-solid fa-chevron-right"></i></button>
-                                            </div>
-                                            <div class="calendar-weekdays">
-                                                <div class="calendar-weekday">Do</div>
-                                                <div class="calendar-weekday">Lu</div>
-                                                <div class="calendar-weekday">Ma</div>
-                                                <div class="calendar-weekday">Mi</div>
-                                                <div class="calendar-weekday">Ju</div>
-                                                <div class="calendar-weekday">Vi</div>
-                                                <div class="calendar-weekday">Sá</div>
-                                            </div>
-                                            <div class="calendar-days" id="vinculacionCalendarDays"></div>
-                                            <div class="calendar-footer">
-                                                <button type="button" class="calendar-btn primary" onclick="selectToday('vinculacion')">Hoy</button>
-                                                <button type="button" class="calendar-btn" onclick="clearSelection('vinculacion')">Limpiar</button>
-                                            </div>
-                                        </div>
-                                    </div>
+                            <!-- NUEVOS CAMPOS: FECHAS -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Fecha de Nacimiento *</label>
+                                    <input type="text" class="form-control" id="editFechaNacimiento" placeholder="dd/mm/aaaa" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Fecha de Vinculación *</label>
+                                    <input type="text" class="form-control" id="editFechaVinculacion" placeholder="dd/mm/aaaa" required>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="form-group">
-                            <label>Título Profesional</label>
-                            <input type="text" class="form-control" id="editTituloProfesional" 
-                                   placeholder="">
-                        </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Título Profesional</label>
+                                    <input type="text" class="form-control" id="editTituloProfesional" placeholder="">
+                                </div>
+                                <div class="form-group">
+                                    <label>Especialidad</label>
+                                    <input type="text" class="form-control" id="editEspecialidad" placeholder="">
+                                </div>
+                            </div>
 
-                        <div class="form-group">
-                            <label>Especialidad</label>
-                            <input type="text" class="form-control" id="editEspecialidad" 
-                                   placeholder="">
-                        </div>
-
-                        <div class="form-actions">
-                            <button type="button" class="btn btn-secondary" onclick="showConfigView('main')">
-                                <i class="fa-solid fa-times"></i>
-                                Cancelar
-                            </button>
-                            <button type="button" class="btn btn-primary" onclick="savePersonalInfo()">
-                                <i class="fa-solid fa-save"></i>
-                                Guardar Cambios
-                            </button>
-                        </div>
-                    </form>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary" onclick="showConfigView('main')">
+                                    <i class="fa-solid fa-times"></i>
+                                    Cancelar
+                                </button>
+                                <button type="button" class="btn btn-primary" onclick="savePersonalInfo()">
+                                    <i class="fa-solid fa-save"></i>
+                                    Guardar Cambios
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
     <!-- SECCIÓN: ESTUDIANTES -->
     <div id="students-section" class="content-section">
@@ -672,23 +556,42 @@ if (strlen($iniciales) == 0) {
         </div>
     </div>
 </main>
-<div id="classes-section" class="content-section">
-    <!-- Vista Principal -->
-    <div id="config-main" class="schedules-view active">
-        <div class="content-header">
-            <div>
-                <h1>Configuración</h1>
-                <p>Aquí podrás cambiar configuraciones de tu cuenta.</p>
-            </div>
-            <button class="btn btn-primary" onclick="showConfigView('edit')">
-                <i class="fa-solid fa-user-edit"></i>
-                Editar información personal
-            </button>   
-        </div>
 
-<!-- Script JavaScript -->
+<!-- INICIALIZAR FLATPICKR -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Fecha de Nacimiento
+        flatpickr("#editFechaNacimiento", {
+            dateFormat: "d/m/Y",
+            locale: "es",
+            maxDate: "today"
+        });
+
+        // Fecha de Vinculación
+        flatpickr("#editFechaVinculacion", {
+            dateFormat: "d/m/Y",
+            locale: "es"
+        });
+
+        // Hora de Inicio
+        flatpickr("#horaInicio", {
+            enableTime: true,
+            noCalendar: true,
+            dateFormat: "h:i K",
+            time_24hr: false
+        });
+
+        // Hora de Fin
+        flatpickr("#horaFin", {
+            enableTime: true,
+            noCalendar: true,
+            dateFormat: "h:i K",
+            time_24hr: false
+        });
+    });
+</script>
+
+<!-- Tu script original -->
 <script src="panel.js"></script>
-<script src="config-datepicker.js"></script>
-
 </body>
 </html>
