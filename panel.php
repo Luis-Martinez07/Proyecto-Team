@@ -49,10 +49,7 @@ if (strlen($iniciales) == 0) {
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="panel.css">
     <title>Panel Instructor</title>
-
-    <!-- FLATPICKR: Selectores bonitos de fecha y hora -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </head>
 <body>
 
@@ -308,18 +305,18 @@ if (strlen($iniciales) == 0) {
                         </div>
                         <div class="form-card-body">
                             <div class="form-group">
-                                <label>Nombre del Horario *</label>
+                                <label>Nombre del Horario</label>
                                 <input type="text" class="form-control" placeholder="Ej: Horario Semestre 2025-1" id="scheduleName">
                             </div>
                             
                             <!-- NUEVOS CAMPOS: HORA DE INICIO Y FIN -->
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label>Hora de Inicio *</label>
+                                    <label>Hora de Inicio</label>
                                     <input type="text" class="form-control" id="horaInicio" placeholder="08:00 AM" required>
                                 </div>
                                 <div class="form-group">
-                                    <label>Hora de Fin *</label>
+                                    <label>Hora de Fin</label>
                                     <input type="text" class="form-control" id="horaFin" placeholder="06:00 PM" required>
                                 </div>
                             </div>
@@ -505,11 +502,11 @@ if (strlen($iniciales) == 0) {
                             <!-- NUEVOS CAMPOS: FECHAS -->
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label>Fecha de Nacimiento *</label>
+                                    <label>Fecha de Nacimiento</label>
                                     <input type="text" class="form-control" id="editFechaNacimiento" placeholder="dd/mm/aaaa" required>
                                 </div>
                                 <div class="form-group">
-                                    <label>Fecha de Vinculación *</label>
+                                    <label>Fecha de Vinculación</label>
                                     <input type="text" class="form-control" id="editFechaVinculacion" placeholder="dd/mm/aaaa" required>
                                 </div>
                             </div>
@@ -556,6 +553,11 @@ if (strlen($iniciales) == 0) {
         </div>
     </div>
 </main>
+
+<!-- FLATPICKR: JavaScript - AL FINAL -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<!-- IMPORTANTE: Cargar el idioma español -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
 
 <!-- INICIALIZAR FLATPICKR -->
 <script>

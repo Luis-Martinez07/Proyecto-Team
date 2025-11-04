@@ -6,18 +6,6 @@ let selectedDate = new Date();
 let horarioEnEdicion = null;
 let currentCell = null;
 
-// Time Picker Data
-const timePickerData = {
-    start: { currentDate: new Date(), selectedDate: null, selectedTime: null },
-    end: { currentDate: new Date(), selectedDate: null, selectedTime: null }
-};
-
-// Date Picker Config Data
-const datePickerConfigData = {
-    birth: { currentDate: new Date(), selectedDate: null },
-    vinculacion: { currentDate: new Date(), selectedDate: null }
-};
-
 const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
                     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
@@ -29,10 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
     updateBadges();
     checkWelcomeMessage();
-    
-    setTimeout(() => {
-        initializeTimePickers();
-    }, 300);
+    initializeFlatpickr();
 });
 
 function initializeApp() {
@@ -77,13 +62,45 @@ function setupEventListeners() {
             updateThemeIcon(newTheme);
         });
     }
+}
 
-    // Cerrar dropdowns al hacer click fuera
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.time-picker-wrapper')) {
-            closeAllTimeDropdowns();
-            closeAllConfigDateDropdowns();
-        }
+// ========================================
+// FLATPICKR INITIALIZATION
+// ========================================
+function initializeFlatpickr() {
+    // Fecha de Nacimiento
+    const birthDate = flatpickr("#editFechaNacimiento", {
+        dateFormat: "d/m/Y",
+        locale: "es",
+        maxDate: "today",
+        altInput: true,
+        altFormat: "j F Y"
+    });
+
+    // Fecha de Vinculación
+    const vincDate = flatpickr("#editFechaVinculacion", {
+        dateFormat: "d/m/Y",
+        locale: "es",
+        altInput: true,
+        altFormat: "j F Y"
+    });
+
+    // Hora de Inicio
+    const horaInicio = flatpickr("#horaInicio", {
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "h:i K",
+        time_24hr: false,
+        minuteIncrement: 30
+    });
+
+    // Hora de Fin
+    const horaFin = flatpickr("#horaFin", {
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "h:i K",
+        time_24hr: false,
+        minuteIncrement: 30
     });
 }
 
@@ -182,7 +199,7 @@ function toggleDropdown() {
     const dropdownToggle = document.querySelector('.nav-dropdown-toggle');
     
     if (dropdownMenu) dropdownMenu.classList.toggle('active');
-    if (dropdownToggle) dropdownMenu.classList.toggle('active'); // Corregido: debería ser dropdownToggle
+    if (dropdownToggle) dropdownToggle.classList.toggle('active');
 }
 
 function closeDropdown() {
@@ -233,236 +250,8 @@ function confirmLogout() {
 }
 
 // ========================================
-// TIME PICKER - HORARIOS
+// UTILIDADES
 // ========================================
-function initializeTimePickers() {
-    ['start', 'end'].forEach(type => {
-        const input = document.getElementById(type === 'start' ? 'scheduleStartTime' : 'scheduleEndTime');
-        if (input) {
-            initTimePicker(type);
-            renderTimeCalendar(type);
-        }
-    });
-}
-
-function initTimePicker(type) {
-    const input = document.getElementById(type === 'start' ? 'scheduleStartTime' : 'scheduleEndTime');
-    const dropdown = document.getElementById(type + 'TimeDropdown');
-
-    if (!input || !dropdown) return;
-
-    input.addEventListener('click', (e) => {
-        e.stopPropagation();
-        closeAllTimeDropdowns();
-        dropdown.classList.add('active');
-        renderTimeCalendar(type);
-        renderTimeSlots(type);
-    });
-
-    generateTimeSlots(type);
-}
-
-function closeAllTimeDropdowns() {
-    document.querySelectorAll('.time-picker-dropdown').forEach(d => {
-        d.classList.remove('active');
-    });
-}
-
-function renderTimeCalendar(type) {
-    const date = timePickerData[type].currentDate;
-    const year = date.getFullYear();
-    const month = date.getMonth();
-
-    const monthElement = document.getElementById(type + 'CalendarMonth');
-    if (monthElement) {
-        monthElement.textContent = `${monthNames[month]} ${year}`;
-    }
-
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const daysInPrevMonth = new Date(year, month, 0).getDate();
-
-    const daysContainer = document.getElementById(type + 'CalendarDays');
-    if (!daysContainer) return;
-
-    daysContainer.innerHTML = '';
-
-    // Días mes anterior
-    for (let i = firstDay - 1; i >= 0; i--) {
-        const day = daysInPrevMonth - i;
-        const dayEl = createTimeDayElement(day, true, type, year, month - 1);
-        daysContainer.appendChild(dayEl);
-    }
-
-    // Días mes actual
-    for (let day = 1; day <= daysInMonth; day++) {
-        const dayEl = createTimeDayElement(day, false, type, year, month);
-        daysContainer.appendChild(dayEl);
-    }
-
-    // Días mes siguiente
-    const remainingDays = 42 - daysContainer.children.length;
-    for (let day = 1; day <= remainingDays; day++) {
-        const dayEl = createTimeDayElement(day, true, type, year, month + 1);
-        daysContainer.appendChild(dayEl);
-    }
-}
-
-function createTimeDayElement(day, isOtherMonth, type, year, month) {
-    const dayEl = document.createElement('div');
-    dayEl.className = 'calendar-day';
-    dayEl.textContent = day;
-
-    if (isOtherMonth) dayEl.classList.add('other-month');
-
-    const selectedDate = timePickerData[type].selectedDate;
-    if (selectedDate && 
-        selectedDate.getDate() === day && 
-        selectedDate.getMonth() === month && 
-        selectedDate.getFullYear() === year &&
-        !isOtherMonth) {
-        dayEl.classList.add('selected');
-    }
-
-    const today = new Date();
-    if (!isOtherMonth &&
-        today.getDate() === day && 
-        today.getMonth() === month && 
-        today.getFullYear() === year) {
-        dayEl.classList.add('today');
-    }
-
-    dayEl.addEventListener('click', (e) => {
-        e.stopPropagation();
-        timePickerData[type].selectedDate = new Date(year, month, day);
-        renderTimeCalendar(type);
-        updateTimeInput(type);
-
-        if (timePickerData[type].selectedTime) {
-            closeAllTimeDropdowns();
-        }
-    });
-
-    return dayEl;
-}
-
-function generateTimeSlots(type) {
-    const container = document.getElementById(type + 'TimeSlots');
-    if (!container) return;
-
-    container.innerHTML = '';
-
-    for (let hour = 0; hour < 24; hour++) {
-        for (let min = 0; min < 60; min += 30) {
-            const isPM = hour >= 12;
-            const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-            const displayMin = min.toString().padStart(2, '0');
-            const period = isPM ? 'PM' : 'AM';
-            const timeValue = `${hour.toString().padStart(2, '0')}:${displayMin}`;
-            const timeDisplay = `${displayHour.toString().padStart(2, '0')}:${displayMin} ${period}`;
-            
-            const slot = document.createElement('div');
-            slot.className = 'time-slot';
-            slot.textContent = timeDisplay;
-
-            slot.addEventListener('click', (e) => {
-                e.stopPropagation();
-                selectTimeSlot(timeValue, timeDisplay, type);
-            });
-
-            container.appendChild(slot);
-        }
-    }
-}
-
-function selectTimeSlot(timeValue, timeDisplay, type) {
-    timePickerData[type].selectedTime = { value: timeValue, display: timeDisplay };
-    renderTimeSlots(type);
-    updateTimeInput(type);
-    
-    if (timePickerData[type].selectedDate) {
-        closeAllTimeDropdowns();
-    }
-}
-
-function renderTimeSlots(type) {
-    const selectedTime = timePickerData[type].selectedTime;
-    const slots = document.querySelectorAll(`#${type}TimeSlots .time-slot`);
-    
-    slots.forEach(slot => {
-        if (selectedTime && slot.textContent === selectedTime.display) {
-            slot.classList.add('selected');
-        } else {
-            slot.classList.remove('selected');
-        }
-    });
-}
-
-function updateTimeInput(type) {
-    const picker = timePickerData[type];
-    const input = document.getElementById(type === 'start' ? 'scheduleStartTime' : 'scheduleEndTime');
-
-    if (!input) return;
-
-    if (picker.selectedDate && picker.selectedTime) {
-        const date = picker.selectedDate;
-        const dateStr = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
-        input.value = `${dateStr} - ${picker.selectedTime.display}`;
-        input.dataset.timeValue = picker.selectedTime.value;
-    }
-}
-
-/** * FIX: changeMonth, selectToday y clearSelection DEBEN ser globales
- * para ser llamadas directamente desde el atributo 'onclick' en el HTML 
- * (lo cual soluciona el 'Uncaught ReferenceError: changeMonth is not defined').
- * Estas funciones ya están definidas globalmente aquí.
- */
-function changeMonth(delta, type) {
-    if (type === 'birth' || type === 'vinculacion') {
-        const date = datePickerConfigData[type].currentDate;
-        date.setMonth(date.getMonth() + delta);
-        renderConfigCalendar(type);
-    } else if (type === 'start' || type === 'end') {
-        const date = timePickerData[type].currentDate;
-        date.setMonth(date.getMonth() + delta);
-        renderTimeCalendar(type);
-    }
-}
-
-function selectToday(type) {
-    if (type === 'birth' || type === 'vinculacion') {
-        const today = new Date();
-        datePickerConfigData[type].selectedDate = today;
-        datePickerConfigData[type].currentDate = new Date(today);
-        selectConfigDate(today, type);
-    } else if (type === 'start' || type === 'end') {
-        timePickerData[type].selectedDate = new Date();
-        timePickerData[type].currentDate = new Date();
-        renderTimeCalendar(type);
-        updateTimeInput(type);
-    }
-}
-
-function clearSelection(type) {
-    if (type === 'birth' || type === 'vinculacion') {
-        datePickerConfigData[type].selectedDate = null;
-        const inputId = type === 'birth' ? 'editFechaNacimiento' : 'editFechaVinculacion';
-        const input = document.getElementById(inputId);
-        if (input) input.value = '';
-        renderConfigCalendar(type);
-    } else if (type === 'start' || type === 'end') {
-        timePickerData[type].selectedDate = null;
-        timePickerData[type].selectedTime = null;
-        const input = document.getElementById(type === 'start' ? 'scheduleStartTime' : 'scheduleEndTime');
-        if (input) {
-            input.value = '';
-            delete input.dataset.timeValue;
-        }
-        renderTimeCalendar(type);
-        renderTimeSlots(type);
-    }
-}
-
 function convertTo12Hour(time24) {
     const [hour, min] = time24.split(':').map(Number);
     const isPM = hour >= 12;
@@ -471,134 +260,20 @@ function convertTo12Hour(time24) {
     return `${displayHour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')} ${period}`;
 }
 
+function convertTo24Hour(time12) {
+    const [time, period] = time12.split(' ');
+    let [hour, min] = time.split(':').map(Number);
+    
+    if (period === 'PM' && hour !== 12) hour += 12;
+    if (period === 'AM' && hour === 12) hour = 0;
+    
+    return `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+}
+
 function formatTime(minutes) {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-}
-
-// ========================================
-// DATE PICKER - CONFIGURACIÓN
-// ========================================
-function initConfigDatePickers() {
-    ['birth', 'vinculacion'].forEach(type => {
-        const inputId = type === 'birth' ? 'editFechaNacimiento' : 'editFechaVinculacion';
-        const dropdownId = type === 'birth' ? 'birthDateDropdown' : 'vinculacionDateDropdown';
-        
-        const input = document.getElementById(inputId);
-        const dropdown = document.getElementById(dropdownId);
-
-        if (!input || !dropdown) return;
-
-        // Remover event listeners anteriores para evitar duplicados
-        const newInput = input.cloneNode(true);
-        input.parentNode.replaceChild(newInput, input);
-        
-        newInput.addEventListener('click', (e) => {
-            e.stopPropagation();
-            closeAllConfigDateDropdowns();
-            dropdown.style.display = 'flex';
-            renderConfigCalendar(type);
-        });
-    });
-}
-
-function closeAllConfigDateDropdowns() {
-    ['birthDateDropdown', 'vinculacionDateDropdown'].forEach(id => {
-        const dropdown = document.getElementById(id);
-        if (dropdown) dropdown.style.display = 'none';
-    });
-}
-
-function renderConfigCalendar(type) {
-    const date = datePickerConfigData[type].currentDate;
-    const year = date.getFullYear();
-    const month = date.getMonth();
-
-    const calendarId = type === 'birth' ? 'birth' : 'vinculacion';
-    const monthElement = document.getElementById(calendarId + 'CalendarMonth');
-    
-    if (monthElement) {
-        monthElement.textContent = `${monthNames[month]} ${year}`;
-    }
-
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const daysInPrevMonth = new Date(year, month, 0).getDate();
-
-    const daysContainer = document.getElementById(calendarId + 'CalendarDays');
-    if (!daysContainer) return;
-
-    daysContainer.innerHTML = '';
-
-    // Días mes anterior
-    for (let i = firstDay - 1; i >= 0; i--) {
-        const day = daysInPrevMonth - i;
-        const dayEl = createConfigDayElement(day, true, type, year, month - 1);
-        daysContainer.appendChild(dayEl);
-    }
-
-    // Días mes actual
-    for (let day = 1; day <= daysInMonth; day++) {
-        const dayEl = createConfigDayElement(day, false, type, year, month);
-        daysContainer.appendChild(dayEl);
-    }
-
-    // Días mes siguiente
-    const remainingDays = 42 - daysContainer.children.length;
-    for (let day = 1; day <= remainingDays; day++) {
-        const dayEl = createConfigDayElement(day, true, type, year, month + 1);
-        daysContainer.appendChild(dayEl);
-    }
-}
-
-function createConfigDayElement(day, isOtherMonth, type, year, month) {
-    const dayEl = document.createElement('div');
-    dayEl.className = 'calendar-day';
-    dayEl.textContent = day;
-
-    if (isOtherMonth) dayEl.classList.add('other-month');
-
-    const selectedDate = datePickerConfigData[type].selectedDate;
-    if (selectedDate && 
-        selectedDate.getDate() === day && 
-        selectedDate.getMonth() === month && 
-        selectedDate.getFullYear() === year &&
-        !isOtherMonth) {
-        dayEl.classList.add('selected');
-    }
-
-    const today = new Date();
-    if (!isOtherMonth &&
-        today.getDate() === day && 
-        today.getMonth() === month && 
-        today.getFullYear() === year) {
-        dayEl.classList.add('today');
-    }
-
-    dayEl.addEventListener('click', (e) => {
-        e.stopPropagation();
-        selectConfigDate(new Date(year, month, day), type);
-    });
-
-    return dayEl;
-}
-
-function selectConfigDate(date, type) {
-    datePickerConfigData[type].selectedDate = date;
-    
-    const inputId = type === 'birth' ? 'editFechaNacimiento' : 'editFechaVinculacion';
-    const input = document.getElementById(inputId);
-    
-    if (input) {
-        const day = date.getDate().toString().padStart(2, '0');
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const year = date.getFullYear();
-        input.value = `${day}/${month}/${year}`;
-    }
-    
-    renderConfigCalendar(type);
-    setTimeout(() => closeAllConfigDateDropdowns(), 200);
 }
 
 // ========================================
@@ -624,21 +299,22 @@ function showScheduleView(view) {
 
 function generateScheduleGrid() {
     const scheduleName = document.getElementById('scheduleName');
-    const startTimeInput = document.getElementById('scheduleStartTime');
-    const endTimeInput = document.getElementById('scheduleEndTime');
+    const horaInicio = document.getElementById('horaInicio');
+    const horaFin = document.getElementById('horaFin');
     
     if (!scheduleName || !scheduleName.value.trim()) {
         alert('Por favor ingresa un nombre para el horario');
         return;
     }
 
-    if (!startTimeInput || !endTimeInput || !startTimeInput.value || !endTimeInput.value) {
+    if (!horaInicio || !horaFin || !horaInicio.value || !horaFin.value) {
         alert('Por favor selecciona las horas de inicio y fin');
         return;
     }
 
-    const startTime = startTimeInput.dataset.timeValue || '07:00';
-    const endTime = endTimeInput.dataset.timeValue || '18:00';
+    // Convertir a formato 24 horas
+    const startTime = convertTo24Hour(horaInicio.value);
+    const endTime = convertTo24Hour(horaFin.value);
     
     const [startH, startM] = startTime.split(':').map(Number);
     const [endH, endM] = endTime.split(':').map(Number);
@@ -814,21 +490,21 @@ function removeAssignment(button) {
 
 async function saveSchedule() {
     const scheduleName = document.getElementById('scheduleName');
-    const startTimeInput = document.getElementById('scheduleStartTime');
-    const endTimeInput = document.getElementById('scheduleEndTime');
+    const horaInicio = document.getElementById('horaInicio');
+    const horaFin = document.getElementById('horaFin');
     
     if (!scheduleName || !scheduleName.value.trim()) {
         alert('Por favor ingresa un nombre para el horario');
         return;
     }
     
-    if (!startTimeInput || !endTimeInput || !startTimeInput.value || !endTimeInput.value) {
+    if (!horaInicio || !horaFin || !horaInicio.value || !horaFin.value) {
         alert('Por favor completa las horas de inicio y fin');
         return;
     }
 
-    const startTime = startTimeInput.dataset.timeValue || '07:00';
-    const endTime = endTimeInput.dataset.timeValue || '18:00';
+    const startTime = convertTo24Hour(horaInicio.value);
+    const endTime = convertTo24Hour(horaFin.value);
     const diasActivos = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
     
     const bloques = [];
@@ -1067,34 +743,16 @@ function cargarDatosEnFormulario(horario) {
     if (scheduleName) scheduleName.value = horario.nombre_horario || '';
     
     if (horario.hora_inicio) {
-        const startInput = document.getElementById('scheduleStartTime');
-        if (startInput) {
-            const today = new Date();
-            const dateStr = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
-            startInput.value = `${dateStr} - ${convertTo12Hour(horario.hora_inicio)}`;
-            startInput.dataset.timeValue = horario.hora_inicio;
-            
-            timePickerData.start.selectedDate = today;
-            timePickerData.start.selectedTime = {
-                value: horario.hora_inicio,
-                display: convertTo12Hour(horario.hora_inicio)
-            };
+        const horaInicio = document.getElementById('horaInicio');
+        if (horaInicio) {
+            horaInicio.value = convertTo12Hour(horario.hora_inicio);
         }
     }
     
     if (horario.hora_fin) {
-        const endInput = document.getElementById('scheduleEndTime');
-        if (endInput) {
-            const today = new Date();
-            const dateStr = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
-            endInput.value = `${dateStr} - ${convertTo12Hour(horario.hora_fin)}`;
-            endInput.dataset.timeValue = horario.hora_fin;
-            
-            timePickerData.end.selectedDate = today;
-            timePickerData.end.selectedTime = {
-                value: horario.hora_fin,
-                display: convertTo12Hour(horario.hora_fin)
-            };
+        const horaFin = document.getElementById('horaFin');
+        if (horaFin) {
+            horaFin.value = convertTo12Hour(horario.hora_fin);
         }
     }
     
@@ -1180,17 +838,10 @@ function limpiarFormularioHorario() {
     const scheduleName = document.getElementById('scheduleName');
     if (scheduleName) scheduleName.value = '';
     
-    ['start', 'end'].forEach(type => {
-        timePickerData[type].selectedDate = null;
-        timePickerData[type].selectedTime = null;
-        timePickerData[type].currentDate = new Date();
-        
-        const input = document.getElementById(type === 'start' ? 'scheduleStartTime' : 'scheduleEndTime');
-        if (input) {
-            input.value = '';
-            delete input.dataset.timeValue;
-        }
-    });
+    const horaInicio = document.getElementById('horaInicio');
+    const horaFin = document.getElementById('horaFin');
+    if (horaInicio) horaInicio.value = '';
+    if (horaFin) horaFin.value = '';
     
     const scheduleGridCard = document.getElementById('scheduleGridCard');
     if (scheduleGridCard) scheduleGridCard.style.display = 'none';
@@ -1225,7 +876,6 @@ function showConfigView(view) {
         if (view === 'edit') {
             setTimeout(() => {
                 cargarDatosInstructor();
-                initConfigDatePickers();
             }, 100);
         }
     }
@@ -1246,7 +896,6 @@ async function cargarDatosInstructor() {
             // Convertir y mostrar fecha de nacimiento
             if (i.fecha_nacimiento) {
                 const birthDate = new Date(i.fecha_nacimiento);
-                datePickerConfigData.birth.selectedDate = birthDate;
                 const day = birthDate.getDate().toString().padStart(2, '0');
                 const month = (birthDate.getMonth() + 1).toString().padStart(2, '0');
                 const year = birthDate.getFullYear();
@@ -1256,7 +905,6 @@ async function cargarDatosInstructor() {
             // Convertir y mostrar fecha de vinculación
             if (i.fecha_vinculacion) {
                 const vincDate = new Date(i.fecha_vinculacion);
-                datePickerConfigData.vinculacion.selectedDate = vincDate;
                 const day = vincDate.getDate().toString().padStart(2, '0');
                 const month = (vincDate.getMonth() + 1).toString().padStart(2, '0');
                 const year = vincDate.getFullYear();
@@ -1278,6 +926,8 @@ async function savePersonalInfo() {
         especialidad: document.getElementById('editEspecialidad').value.trim()
     };
 
+    console.log('Datos a enviar:', formData); // Debug
+
     if (!formData.cedula || !formData.telefono) {
         alert('Por favor completa los campos requeridos (Cédula y Teléfono)');
         return;
@@ -1292,6 +942,8 @@ async function savePersonalInfo() {
         
         const data = await response.json();
         
+        console.log('Respuesta del servidor:', data); // Debug
+        
         if (data.success) {
             alert('Información actualizada exitosamente');
             showConfigView('main');
@@ -1303,93 +955,10 @@ async function savePersonalInfo() {
         alert('Error al conectar con el servidor');
     }
 }
-// ========================================
-// SISTEMA DE ALERTAS DINÁMICAS (AGREGAR AL FINAL)
-// ========================================
-
-/**
- * Muestra alerta de éxito
- */
-function mostrarAlertaExito(mensaje) {
-    crearAlerta(mensaje, 'success');
-}
-
-/**
- * Muestra alerta de error con lista opcional
- */
-function mostrarAlertaError(mensaje, errores = []) {
-    let html = `<strong>${mensaje}</strong>`;
-    if (errores.length > 0) {
-        html += '<ul class="alert-error-list">';
-        errores.forEach(err => html += `<li>${err}</li>`);
-        html += '</ul>';
-    }
-    crearAlerta(html, 'error');
-}
-
-/**
- * Muestra alerta de advertencia
- */
-function mostrarAlertaAdvertencia(mensaje) {
-    crearAlerta(mensaje, 'warning');
-}
-
-/**
- * Crea y muestra una alerta personalizada
- */
-function crearAlerta(contenido, tipo = 'info') {
-    // Evitar duplicados
-    const existente = document.querySelector('.custom-alert.show');
-    if (existente) existente.remove();
-
-    const alerta = document.createElement('div');
-    alerta.className = `custom-alert alert-${tipo}`;
-    
-    const iconos = {
-        success: 'fa-check-circle',
-        error: 'fa-exclamation-triangle',
-        warning: 'fa-exclamation-circle',
-        info: 'fa-info-circle'
-    };
-
-    alerta.innerHTML = `
-        <div class="alert-icon">
-            <i class="fas ${iconos[tipo] || iconos.info}"></i>
-        </div>
-        <div class="alert-content">${contenido}</div>
-        <button class="alert-close" onclick="cerrarAlerta(this)">
-            <i class="fas fa-times"></i>
-        </button>
-    `;
-
-    document.body.appendChild(alerta);
-    setTimeout(() => alerta.classList.add('show'), 10);
-
-    // Auto-cerrar después de 6 segundos
-    setTimeout(() => {
-        if (alerta && alerta.parentNode) {
-            alerta.classList.remove('show');
-            setTimeout(() => alerta.remove(), 300);
-        }
-    }, 6000);
-}
-
-/**
- * Cierra una alerta manualmente
- */
-function cerrarAlerta(btn) {
-    const alerta = btn.closest('.custom-alert');
-    if (alerta) {
-        alerta.classList.remove('show');
-        setTimeout(() => alerta.remove(), 300);
-    }
-}
 
 // ========================================
 // LOG DE CONFIRMACIÓN
 // ========================================
-console.log('✅ Panel JavaScript optimizado cargado correctamente');
-console.log('✅ Time Picker integrado');
-console.log('✅ Date Picker integrado');
+console.log('✅ Panel JavaScript con Flatpickr cargado correctamente');
 console.log('✅ Funciones de horarios activas');
 console.log('✅ Funciones de configuración activas');

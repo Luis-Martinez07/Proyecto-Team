@@ -2,135 +2,115 @@
 session_start();
 header('Content-Type: application/json');
 
-// === 1. VERIFICAR SESIÓN ===
+// IMPORTANTE: Agregar logs para debug
+error_log("=== INICIO actualizar_datos_instructor.php ===");
+
+// Verificar sesión
 if (!isset($_SESSION['usuario_id'])) {
-    responder(false, 'Sesión expirada. Por favor, inicia sesión nuevamente.');
+    error_log("ERROR: No hay sesión activa");
+    echo json_encode(['success' => false, 'message' => 'No hay sesión activa']);
     exit;
 }
 
-require_once 'config.php';
+error_log("Usuario ID: " . $_SESSION['usuario_id']);
+
+// Incluir conexión a BD
+require_once 'conexion.php'; // o el archivo que tengas para la conexión
 
 try {
-    $pdo = conectarDB();
-    $data = json_decode(file_get_contents('php://input'), true);
+    // Recibir datos JSON
+    $json = file_get_contents('php://input');
+    error_log("JSON recibido: " . $json);
+    
+    $data = json_decode($json, true);
+    
+    if (!$data) {
+        error_log("ERROR: No se pudieron decodificar los datos JSON");
+        throw new Exception('No se recibieron datos válidos');
+    }
+    
+    error_log("Datos decodificados: " . print_r($data, true));
+    
     $usuario_id = $_SESSION['usuario_id'];
-
-    // === 2. VALIDACIÓN DE CAMPOS ===
-    $errores = [];
-
-    if (empty($data['cedula'])) {
-        $errores[] = 'La cédula es obligatoria';
-    } elseif (!preg_match('/^\d{7,10}$/', $data['cedula'])) {
-        $errores[] = 'Cédula inválida (7-10 dígitos)';
+    
+    // Validar campos requeridos
+    if (empty($data['cedula']) || empty($data['telefono'])) {
+        error_log("ERROR: Faltan campos requeridos");
+        throw new Exception('Cédula y teléfono son obligatorios');
     }
-
-    if (empty($data['telefono'])) {
-        $errores[] = 'El teléfono es obligatorio';
-    } elseif (!preg_match('/^\d{10,11}$/', $data['telefono'])) {
-        $errores[] = 'Teléfono inválido (10-11 dígitos)';
+    
+    // Convertir fechas del formato DD/MM/YYYY a YYYY-MM-DD
+    $fecha_nacimiento = null;
+    if (!empty($data['fecha_nacimiento'])) {
+        $fecha_partes = explode('/', $data['fecha_nacimiento']);
+        if (count($fecha_partes) === 3) {
+            $fecha_nacimiento = $fecha_partes[2] . '-' . $fecha_partes[1] . '-' . $fecha_partes[0];
+            error_log("Fecha de nacimiento convertida: " . $fecha_nacimiento);
+        }
     }
-
-    if (!empty($data['fecha_nacimiento']) && !validarFecha($data['fecha_nacimiento'])) {
-        $errores[] = 'Fecha de nacimiento inválida (usa dd/mm/aaaa)';
+    
+    $fecha_vinculacion = null;
+    if (!empty($data['fecha_vinculacion'])) {
+        $fecha_partes = explode('/', $data['fecha_vinculacion']);
+        if (count($fecha_partes) === 3) {
+            $fecha_vinculacion = $fecha_partes[2] . '-' . $fecha_partes[1] . '-' . $fecha_partes[0];
+            error_log("Fecha de vinculación convertida: " . $fecha_vinculacion);
+        }
     }
-
-    if (!empty($data['fecha_vinculacion']) && !validarFecha($data['fecha_vinculacion'])) {
-        $errores[] = 'Fecha de vinculación inválida (usa dd/mm/aaaa)';
-    }
-
-    if (!empty($errores)) {
-        responder(false, 'Corrige los siguientes errores:', $errores);
-        exit;
-    }
-
-    // === 3. CONVERTIR FECHAS ===
-    $fecha_nacimiento = convertirFecha($data['fecha_nacimiento']);
-    $fecha_vinculacion = convertirFecha($data['fecha_vinculacion']);
-
-    // === 4. VERIFICAR PERFIL EXISTENTE ===
-    $check = $pdo->prepare("SELECT id FROM perfiles_instructores WHERE usuario_id = ?");
-    $check->execute([$usuario_id]);
-    $exists = $check->fetch();
-
-    // === 5. GUARDAR DATOS ===
-    if ($exists) {
-        $sql = "UPDATE perfiles_instructores SET 
-                cedula = ?, telefono = ?, fecha_nacimiento = ?, 
-                titulo_profesional = ?, especialidad = ?, fecha_vinculacion = ?
-                WHERE usuario_id = ?";
-
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([
-            $data['cedula'],
-            $data['telefono'],
-            $fecha_nacimiento,
-            $data['titulo_profesional'] ?? '',
-            $data['especialidad'] ?? '',
-            $fecha_vinculacion,
-            $usuario_id
-        ]);
-
-        responder(true, '¡Perfil actualizado correctamente!');
-    } else {
-        $sql = "INSERT INTO perfiles_instructores 
-                (usuario_id, cedula, telefono, fecha_nacimiento, titulo_profesional, especialidad, fecha_vinculacion) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)";
-
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([
-            $usuario_id,
-            $data['cedula'],
-            $data['telefono'],
-            $fecha_nacimiento,
-            $data['titulo_profesional'] ?? '',
-            $data['especialidad'] ?? '',
-            $fecha_vinculacion
-        ]);
-
-        responder(true, '¡Perfil creado exitosamente!');
-    }
-
-} catch (Exception $e) {
-    error_log("Error en actualizar_datos_instructor.php: " . $e->getMessage());
-    responder(false, 'Error del servidor. Inténtalo más tarde.');
-}
-
-// ========================================
-// FUNCIONES AUXILIARES
-// ========================================
-
-/**
- * Responde con JSON dinámico
- */
-function responder(bool $success, string $mensaje, array $detalles = []) {
-    $respuesta = [
-        'success' => $success,
-        'message' => htmlspecialchars($mensaje, ENT_QUOTES, 'UTF-8')
+    
+    // Preparar consulta SQL
+    $sql = "UPDATE usuarios SET 
+            cedula = :cedula,
+            telefono = :telefono,
+            fecha_nacimiento = :fecha_nacimiento,
+            fecha_vinculacion = :fecha_vinculacion,
+            titulo_profesional = :titulo_profesional,
+            especialidad = :especialidad
+            WHERE id = :usuario_id";
+    
+    error_log("SQL a ejecutar: " . $sql);
+    
+    $stmt = $pdo->prepare($sql);
+    
+    // Ejecutar consulta
+    $params = [
+        ':cedula' => $data['cedula'],
+        ':telefono' => $data['telefono'],
+        ':fecha_nacimiento' => $fecha_nacimiento,
+        ':fecha_vinculacion' => $fecha_vinculacion,
+        ':titulo_profesional' => $data['titulo_profesional'] ?? null,
+        ':especialidad' => $data['especialidad'] ?? null,
+        ':usuario_id' => $usuario_id
     ];
-
-    if (!empty($detalles)) {
-        $respuesta['errors'] = array_map(fn($e) => htmlspecialchars($e, ENT_QUOTES, 'UTF-8'), $detalles);
+    
+    error_log("Parámetros: " . print_r($params, true));
+    
+    $resultado = $stmt->execute($params);
+    
+    if ($resultado) {
+        error_log("✅ Actualización exitosa");
+        echo json_encode([
+            'success' => true,
+            'message' => 'Información actualizada correctamente'
+        ]);
+    } else {
+        error_log("ERROR: No se pudo actualizar");
+        throw new Exception('No se pudo actualizar la información');
     }
-
-    echo json_encode($respuesta);
-    exit;
+    
+} catch (PDOException $e) {
+    error_log("ERROR PDO: " . $e->getMessage());
+    echo json_encode([
+        'success' => false,
+        'message' => 'Error en la base de datos: ' . $e->getMessage()
+    ]);
+} catch (Exception $e) {
+    error_log("ERROR: " . $e->getMessage());
+    echo json_encode([
+        'success' => false,
+        'message' => $e->getMessage()
+    ]);
 }
 
-/**
- * Valida formato dd/mm/aaaa
- */
-function validarFecha(string $fecha): bool {
-    if (!preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $fecha)) return false;
-    $partes = explode('/', $fecha);
-    return checkdate((int)$partes[1], (int)$partes[0], (int)$partes[2]);
-}
-
-/**
- * Convierte dd/mm/aaaa → YYYY-MM-DD
- */
-function convertirFecha(?string $fecha): ?string {
-    if (empty($fecha)) return null;
-    $partes = explode('/', $fecha);
-    return "$partes[2]-$partes[1]-$partes[0]";
-}
+error_log("=== FIN actualizar_datos_instructor.php ===");
 ?>
