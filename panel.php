@@ -48,8 +48,8 @@ if (strlen($iniciales) == 0) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="panel.css">
+    <link rel="stylesheet" href="select.css">
     <title>Panel Instructor</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
 <body>
 
@@ -69,8 +69,7 @@ if (strlen($iniciales) == 0) {
 
 <!-- Sidebar -->
 <aside class="sidebar" id="sidebar">
-    <!-- Header con Avatar y Nombre -->
-     <div class="sidebar-header">
+    <div class="sidebar-header">
         <div class="user-profile-header">
             <div class="user-avatar-header"><?php echo $iniciales; ?></div>
             <div class="user-info-header">
@@ -80,10 +79,9 @@ if (strlen($iniciales) == 0) {
         </div>
     </div>
 
-    <!-- Navegación Principal -->
     <nav class="sidebar-nav">
         <div class="nav-item active" onclick="showSection('dashboard')">
-            <span class="nav-icon"><i class="fa-solid fa-house"></i></span>
+            <span class="nav-icon"><i class="fa-solid fa-house-user"></i></span>
             <span>Dashboard</span>
         </div>
         
@@ -105,11 +103,8 @@ if (strlen($iniciales) == 0) {
         </div>
     </nav>
 
-    <!-- Footer del Sidebar -->
     <div class="sidebar-footer">
         <div class="divide"></div>
-
-        <!-- Dropdown de Usuario -->
         <div class="nav-dropdown-container">
             <div class="nav-dropdown-toggle" onclick="toggleDropdown()">
                 <span class="nav-icon"><i class="fa-solid fa-user-circle"></i></span>
@@ -127,8 +122,6 @@ if (strlen($iniciales) == 0) {
                 </a>
             </div>
         </div>
-
-        <!-- Toggle de Tema -->
         <div class="nav-item theme-toggle" id="theme-toggle" title="Cambiar Tema">
             <i class="fas fa-moon" id="theme-icon"></i>
             <span class="theme-label">Modo Oscuro</span>
@@ -136,9 +129,8 @@ if (strlen($iniciales) == 0) {
     </div>
 </aside>
 
-<!-- Main Content -->
 <main class="main-content">
-    <!-- SECCIÓN: DASHBOARD -->
+    <!-- DASHBOARD -->
     <div id="dashboard-section" class="content-section active">
         <div class="content-header">
             <div>
@@ -146,46 +138,32 @@ if (strlen($iniciales) == 0) {
                 <p>Gestiona tus horarios, clases y estudiantes de manera eficiente desde esta plataforma.</p>
             </div>
         </div>
-        
-        <!-- Acciones Rápidas -->
         <div class="content-fast">
             <div class="title-acciones">
                 <h1>Funciones del sistema</h1>
                 <div class="divide-small"></div>
                 <p>Accede rápidamente a las funciones principales del sistema</p>
             </div>
-            
             <div class="acciones-rapidas">
                 <div class="accion-card" onclick="showSection('schedules')">
                     <i class="fa-regular fa-calendar accion-icon"></i> 
-                    <div>
-                        <h3>Gestionar Horarios</h3>
-                        <p>Administra y organiza tus horarios de clases de manera eficiente.</p>
-                    </div>
+                    <div><h3>Gestionar Horarios</h3><p>Administra y organiza tus horarios de clases de manera eficiente.</p></div>
                 </div>
-                
                 <div class="accion-card" onclick="showSection('classes')">
                     <i class="fa-solid fa-gear accion-icon"></i>
-                    <div>
-                        <h3>Configuracion</h3>
-                        <p>Aqui puedes hacer los cambios en tu cuenta.</p>
-                    </div>
+                    <div><h3>Configuración</h3><p>Aquí puedes hacer los cambios en tu cuenta.</p></div>
                 </div>
-                
                 <div class="accion-card" onclick="showSection('students')">
                     <i class="fa-solid fa-user-graduate accion-icon"></i>
-                    <div>
-                        <h3>Administrar Estudiantes</h3>
-                        <p>Gestiona la información y progreso de tus estudiantes fácilmente.</p>
-                    </div>
+                    <div><h3>Administrar Estudiantes</h3><p>Gestiona la información y progreso de tus estudiantes fácilmente.</p></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- SECCIÓN: HORARIOS -->
+    <!-- HORARIOS -->
     <div id="schedules-section" class="content-section">
-        <!-- Vista Principal de Horarios -->
+        <!-- VISTA PRINCIPAL -->
         <div id="schedules-main" class="schedules-view active">
             <div class="content-header">
                 <div>
@@ -193,112 +171,30 @@ if (strlen($iniciales) == 0) {
                     <p>Crea y administra los horarios académicos para tus clases</p>
                 </div>
                 <button class="btn btn-primary" onclick="showScheduleView('create')">
-                    <i class="fa-solid fa-plus"></i>
-                    Crear Nuevo Horario
+                    <i class="fa-solid fa-plus"></i> Crear Nuevo Horario
                 </button>
             </div>
 
-            <!-- Lista de Horarios Existentes -->
-            <div class="schedules-grid">
-                <div class="schedule-card">
-                    <div class="schedule-card-header">
-                        <div>
-                            <h3>Horario</h3>
-                            <p class="schedule-meta">
-                                <i class="fa-solid fa-calendar-days"></i>
-                                Lunes a Viernes • 6:00 AM - 10:00 PM
-                            </p>
-                        </div>
-                        <span class="badge badge-success">Activo</span>
-                    </div>
-                    <div class="schedule-card-body">
-                        <div class="schedule-stats">
-                            <div class="stat-item">
-                                <i class="fa-solid fa-book"></i>
-                                <span>Materias</span>
-                            </div>
-                            <div class="stat-item">
-                                <i class="fa-solid fa-clock"></i>
-                                <span>Bloques</span>
-                            </div>
-                            <div class="stat-item">
-                                <i class="fa-solid fa-users"></i>
-                                <span> Grupos</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="schedule-card-footer">
-                        <button class="btn btn-secondary btn-sm" onclick="viewSchedule(1)">
-                            <i class="fa-solid fa-eye"></i>
-                            Ver Horario
-                        </button>
-                        <button class="btn btn-secondary btn-sm" onclick="editSchedule(1)">
-                            <i class="fa-solid fa-edit"></i>
-                            Editar
-                        </button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteSchedule(1)">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="schedule-card">
-                    <div class="schedule-card-header">
-                        <div>
-                            <h3>Horario Turno Tarde</h3>
-                            <p class="schedule-meta">
-                                <i class="fa-solid fa-calendar-days"></i>
-                                Lunes a Sábado • 2:00 PM - 8:00 PM
-                            </p>
-                        </div>
-                        <span class="badge badge-warning">Borrador</span>
-                    </div>
-                    <div class="schedule-card-body">
-                        <div class="schedule-stats">
-                            <div class="stat-item">
-                                <i class="fa-solid fa-book"></i>
-                                <span>Materias</span>
-                            </div>
-                            <div class="stat-item">
-                                <i class="fa-solid fa-clock"></i>
-                                <span>Bloques</span>
-                            </div>
-                            <div class="stat-item">
-                                <i class="fa-solid fa-users"></i>
-                                <span>Grupos</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="schedule-card-footer">
-                        <button class="btn btn-secondary btn-sm" onclick="viewSchedule(2)">
-                            <i class="fa-solid fa-eye"></i>
-                            Ver Horario
-                        </button>
-                        <button class="btn btn-secondary btn-sm" onclick="editSchedule(2)">
-                            <i class="fa-solid fa-edit"></i>
-                            Editar
-                        </button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteSchedule(2)">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </div>
+            <!-- GRID VACÍO AL INICIO -->
+            <div class="schedules-grid" id="schedulesGrid">
+                <div class="empty-state" style="grid-column: 1/-1; text-align: center; padding: 60px 20px;">
+                    <i class="fa-solid fa-calendar-xmark" style="font-size: 64px; color: var(--text-secondary); margin-bottom: 20px;"></i>
+                    <h3 style="margin-bottom: 10px;">No tienes horarios creados</h3>
+                    <p style="color: var(--text-secondary);">Haz clic en "Crear Nuevo Horario" para comenzar</p>
                 </div>
             </div>
         </div>
 
-        <!-- Vista Crear/Editar Horario -->
+        <!-- CREAR / EDITAR -->
         <div id="schedules-create" class="schedules-view">
             <div class="content-header">
                 <button class="btn btn-secondary" onclick="showScheduleView('main')">
-                    <i class="fa-solid fa-arrow-left"></i>
-                    Volver
+                    <i class="fa-solid fa-arrow-left"></i> Volver
                 </button>
-                <h2>Crear Nuevo Horario</h2>
+                <h2 id="createEditTitle">Crear Nuevo Horario</h2>
             </div>
-
             <div class="schedule-form-container">
-                <!-- Paso 1: Configuración Básica -->
-               <div class="container">
+                <div class="container">
                     <div class="form-card">
                         <div class="form-card-header">
                             <h3><i class="fa-solid fa-gear"></i> Configuración Básica</h3>
@@ -306,31 +202,38 @@ if (strlen($iniciales) == 0) {
                         <div class="form-card-body">
                             <div class="form-group">
                                 <label>Nombre del Horario</label>
-                                <input type="text" class="form-control" placeholder="Ej: Horario Semestre 2025-1" id="scheduleName">
+                                <input type="text" class="form-control" placeholder="" id="scheduleName">
                             </div>
-                            
-                            <!-- NUEVOS CAMPOS: HORA DE INICIO Y FIN -->
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Hora de Inicio</label>
-                                    <input type="text" class="form-control" id="horaInicio" placeholder="08:00 AM" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>Hora de Fin</label>
-                                    <input type="text" class="form-control" id="horaFin" placeholder="06:00 PM" required>
-                                </div>
-                            </div>
+                             <div class="form-group">
+    <label>Selecciona la hora:</label>
+    <div class="time-duration-row">
+        <div class="time-input-container">
+            <input type="time" id="horaInicio" class="time-input" value="09:00" required>
+            <span class="time-label" id="horaDisplay">09:00 a.m.</span>
+        </div>
+        <div class="duration-selector">
+            <button type="button" id="durationButton" class="duration-btn">
+                <span id="durationText">1 hora</span>
+               <i class="fa-regular fa-chevron-down"></i>
+            </button>
+            <div id="durationMenu" class="duration-menu">
+                <div class="duration-option" data-minutes="30">30 minutos</div>
+                <div class="duration-option selected" data-minutes="60">1 hora</div>
+                <div class="duration-option" data-minutes="120">2 horas</div>
+            </div>
+        </div>
+    </div>
+</div>
 
+    
                             <div class="form-group">
                                 <button class="btn btn-primary" onclick="generateScheduleGrid()">
-                                    <i class="fa-solid fa-table"></i>
-                                    Generar Tabla de Horario
+                                    <i class="fa-solid fa-table"></i> Generar Tabla de Horario
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Paso 2: Tabla de Horario -->
                     <div class="form-card" id="scheduleGridCard" style="display: none;">
                         <div class="form-card-header">
                             <h3><i class="fa-solid fa-table-cells"></i> Asignación de Clases</h3>
@@ -353,74 +256,48 @@ if (strlen($iniciales) == 0) {
                                             <th>Viernes</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="scheduleTableBody">
-                                        <!-- Se genera dinámicamente -->
-                                    </tbody>
+                                    <tbody id="scheduleTableBody"></tbody>
                                 </table>
                             </div>
-
                             <div class="form-actions">
                                 <button class="btn btn-secondary" onclick="showScheduleView('main')">
-                                    <i class="fa-solid fa-times"></i>
-                                    Cancelar
+                                    <i class="fa-solid fa-times"></i> Cancelar
                                 </button>
                                 <button class="btn btn-primary" onclick="saveSchedule()">
-                                    <i class="fa-solid fa-save"></i>
-                                    Guardar Horario
+                                    <i class="fa-solid fa-save"></i> Guardar Horario
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Vista Ver Horario (Solo Lectura) -->
-            <div id="schedules-view" class="schedules-view">
-                <div class="content-header">
-                    <button class="btn btn-secondary" onclick="showScheduleView('main')">
-                        <i class="fa-solid fa-arrow-left"></i>
-                        Volver
-                    </button>
-                    <div>
-                        <h1>Horario Semestre</h1>
-                        <p>Visualización completa del horario académico</p>
-                    </div>
-                    <div style="display: flex; gap: 10px;">
-                        <button class="btn btn-secondary">
-                            <i class="fa-solid fa-download"></i>
-                            Exportar PDF
-                        </button>
-                        <button class="btn btn-primary" onclick="editSchedule(1)">
-                            <i class="fa-solid fa-edit"></i>
-                            Editar
-                        </button>
-                    </div>
+        <!-- VER HORARIO -->
+        <div id="schedules-view" class="schedules-view">
+            <div class="content-header">
+                <button class="btn btn-secondary" onclick="showScheduleView('main')">
+                    <i class="fa-solid fa-arrow-left"></i> Volver
+                </button>
+                <div>
+                    <h1 id="viewHorarioNombre">Horario</h1>
+                    <p>Visualización completa del horario académico</p>
                 </div>
-
-                <div class="schedule-view-container">
-                    <table class="schedule-table view-mode">
-                        <thead>
-                            <tr>
-                                <th class="time-column">Hora</th>
-                                <th>Lunes</th>
-                                <th>Martes</th>
-                                <th>Miércoles</th>
-                                <th>Jueves</th>
-                                <th>Viernes</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Contenido generado dinámicamente -->
-                        </tbody>
-                    </table>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-secondary" onclick="exportarPDF()">
+                        <i class="fa-solid fa-download"></i> Exportar PDF
+                    </button>
+                    <button class="btn btn-primary" id="btnEditarDesdeVista">
+                        <i class="fa-solid fa-edit"></i> Editar
+                    </button>
                 </div>
             </div>
+            <div class="schedule-view-container" id="viewScheduleContainer"></div>
         </div>
     </div>
 
-    <!-- SECCIÓN: DE CONFIGURACION -->
+    <!-- CONFIGURACIÓN -->
     <div id="classes-section" class="content-section">
-        <!-- Vista Principal -->
         <div id="config-main" class="schedules-view active">
             <div class="content-header">
                 <div>
@@ -428,20 +305,16 @@ if (strlen($iniciales) == 0) {
                     <p>Aquí podrás cambiar configuraciones de tu cuenta.</p>
                 </div>
                 <button class="btn btn-primary" onclick="showConfigView('edit')">
-                    <i class="fa-solid fa-user-edit"></i>
-                    Editar información personal
+                    <i class="fa-solid fa-user-edit"></i> Editar información personal
                 </button>   
             </div>
-
-            <!-- Tarjeta de información -->
             <div class="schedules-grid">
                 <div class="schedule-card">
                     <div class="schedule-card-header">
                         <div>
                             <h3>Información Personal</h3>
                             <p class="schedule-meta">
-                                <i class="fa-regular fa-user"></i>
-                                Actualiza tus datos personales
+                                <i class="fa-regular fa-user"></i> Actualiza tus datos personales
                             </p>
                         </div>
                     </div>
@@ -463,24 +336,20 @@ if (strlen($iniciales) == 0) {
                     </div>
                     <div class="schedule-card-footer">
                         <button class="btn btn-primary btn-sm" onclick="showConfigView('edit')">
-                            <i class="fa-solid fa-edit"></i>
-                            Editar
+                            <i class="fa-solid fa-edit"></i> Editar
                         </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Vista Formulario de Edición -->
         <div id="config-edit" class="schedules-view">
             <div class="content-header">
                 <button class="btn btn-secondary" onclick="showConfigView('main')">
-                    <i class="fa-solid fa-arrow-left"></i>
-                    Volver
+                    <i class="fa-solid fa-arrow-left"></i> Volver
                 </button>
                 <h2>Editar Información Personal</h2>
             </div>
-
             <div class="schedule-form-container">
                 <div class="form-card">
                     <div class="form-card-header">
@@ -498,19 +367,30 @@ if (strlen($iniciales) == 0) {
                                     <input type="tel" class="form-control" id="editTelefono" placeholder="" required>
                                 </div>
                             </div>
-
-                            <!-- NUEVOS CAMPOS: FECHAS -->
                             <div class="form-row">
                                 <div class="form-group">
                                     <label>Fecha de Nacimiento</label>
-                                    <input type="text" class="form-control" id="editFechaNacimiento" placeholder="dd/mm/aaaa" required>
+                                    <div style="display: flex; gap: 10px;">
+                                        <input type="text" class="form-control" id="editFechaNacimiento" 
+                                               placeholder="dd/mm/aaaa" style="flex: 1; cursor: pointer;"
+                                               onclick="openDateModal('nacimiento')">
+                                        <button type="button" class="btn btn-secondary" onclick="openDateModal('nacimiento')">
+                                            <i class="fa-regular fa-calendar"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="form-group">
                                     <label>Fecha de Vinculación</label>
-                                    <input type="text" class="form-control" id="editFechaVinculacion" placeholder="dd/mm/aaaa" required>
+                                    <div style="display: flex; gap: 10px;">
+                                        <input type="text" class="form-control" id="editFechaVinculacion" 
+                                               placeholder="dd/mm/aaaa" style="flex: 1; cursor: pointer;"
+                                               onclick="openDateModal('vinculacion')">
+                                        <button type="button" class="btn btn-secondary" onclick="openDateModal('vinculacion')">
+                                            <i class="fa-regular fa-calendar"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-
                             <div class="form-row">
                                 <div class="form-group">
                                     <label>Título Profesional</label>
@@ -521,15 +401,12 @@ if (strlen($iniciales) == 0) {
                                     <input type="text" class="form-control" id="editEspecialidad" placeholder="">
                                 </div>
                             </div>
-
                             <div class="form-actions">
                                 <button type="button" class="btn btn-secondary" onclick="showConfigView('main')">
-                                    <i class="fa-solid fa-times"></i>
-                                    Cancelar
+                                    <i class="fa-solid fa-times"></i> Cancelar
                                 </button>
                                 <button type="button" class="btn btn-primary" onclick="savePersonalInfo()">
-                                    <i class="fa-solid fa-save"></i>
-                                    Guardar Cambios
+                                    <i class="fa-solid fa-save"></i> Guardar Cambios
                                 </button>
                             </div>
                         </form>
@@ -537,9 +414,43 @@ if (strlen($iniciales) == 0) {
                 </div>
             </div>
         </div>
+
+        <!-- MODAL CALENDARIO -->
+        <div class="calendar-modal" id="calendarModal">
+            <div class="calendar-modal-overlay" onclick="closeCalendarModal()"></div>
+            <div class="calendar-modal-content">
+                <div class="calendar-modal-header">
+                    <h3 id="calendarModalTitle">Seleccionar Fecha</h3>
+                    <button class="calendar-modal-close" onclick="closeCalendarModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="calendar-modal-body">
+                    <div class="calendar-controls">
+                        <button class="calendar-btn" onclick="previousMonthModal()"><i class="fas fa-chevron-left"></i></button>
+                        <span class="calendar-current-month" id="modalCalendarMonth"></span>
+                        <button class="calendar-btn" onclick="nextMonthModal()"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                    <div class="calendar-weekdays">
+                        <div class="calendar-weekday">Dom</div>
+                        <div class="calendar-weekday">Lun</div>
+                        <div class="calendar-weekday">Mar</div>
+                        <div class="calendar-weekday">Mié</div>
+                        <div class="calendar-weekday">Jue</div>
+                        <div class="calendar-weekday">Vie</div>
+                        <div class="calendar-weekday">Sáb</div>
+                    </div>
+                    <div class="calendar-days-grid" id="modalCalendarDays"></div>
+                </div>
+                <div class="calendar-modal-footer">
+                    <button class="btn btn-secondary" onclick="closeCalendarModal()">Cancelar</button>
+                    <button class="btn btn-primary" onclick="selectCurrentModalDate()">Seleccionar</button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- SECCIÓN: ESTUDIANTES -->
+    <!-- ESTUDIANTES -->
     <div id="students-section" class="content-section">
         <div class="content-header">
             <div>
@@ -547,53 +458,13 @@ if (strlen($iniciales) == 0) {
                 <p>Gestiona la información de tus estudiantes</p>
             </div>
             <button class="btn btn-primary" onclick="showStudentView('add')">
-                <i class="fa-solid fa-user-plus"></i>
-                Agregar Nuevo Estudiante
+                <i class="fa-solid fa-user-plus"></i> Agregar Nuevo Estudiante
             </button>
         </div>
     </div>
 </main>
 
-<!-- FLATPICKR: JavaScript - AL FINAL -->
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<!-- IMPORTANTE: Cargar el idioma español -->
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
-
-<!-- INICIALIZAR FLATPICKR -->
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Fecha de Nacimiento
-        flatpickr("#editFechaNacimiento", {
-            dateFormat: "d/m/Y",
-            locale: "es",
-            maxDate: "today"
-        });
-
-        // Fecha de Vinculación
-        flatpickr("#editFechaVinculacion", {
-            dateFormat: "d/m/Y",
-            locale: "es"
-        });
-
-        // Hora de Inicio
-        flatpickr("#horaInicio", {
-            enableTime: true,
-            noCalendar: true,
-            dateFormat: "h:i K",
-            time_24hr: false
-        });
-
-        // Hora de Fin
-        flatpickr("#horaFin", {
-            enableTime: true,
-            noCalendar: true,
-            dateFormat: "h:i K",
-            time_24hr: false
-        });
-    });
-</script>
-
-<!-- Tu script original -->
 <script src="panel.js"></script>
 </body>
 </html>
+<?php

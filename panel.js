@@ -5,9 +5,8 @@ let currentDate = new Date();
 let selectedDate = new Date();
 let horarioEnEdicion = null;
 let currentCell = null;
-
-const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
-                    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+let blockDuration = 60;
+let horarioActualId = null;
 
 // ========================================
 // INICIALIZACIÓN
@@ -17,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
     updateBadges();
     checkWelcomeMessage();
-    initializeFlatpickr();
+    setupDurationDropdown();
 });
 
 function initializeApp() {
@@ -27,99 +26,34 @@ function initializeApp() {
 }
 
 function setupEventListeners() {
-    // Modal
-    const modal = document.getElementById('assignModal');
-    if (modal) {
-        document.addEventListener('click', function(event) {
-            if (event.target === modal) closeAssignModal();
-        });
-    }
-    
-    // Dropdown
-    document.addEventListener('click', function(event) {
-        const dropdown = document.querySelector('.nav-dropdown-container');
-        if (dropdown && !dropdown.contains(event.target)) {
-            closeDropdown();
-        }
-    });
-    
-    // Mobile
-    if (window.innerWidth <= 768) {
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', closeMobileSidebar);
-        });
-    }
-
-    // Theme Toggle
     const themeToggle = document.getElementById('theme-toggle');
     if (themeToggle) {
         themeToggle.addEventListener('click', function() {
             const currentTheme = document.documentElement.getAttribute('data-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
             document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
             updateThemeIcon(newTheme);
         });
     }
-}
 
-// ========================================
-// FLATPICKR INITIALIZATION
-// ========================================
-function initializeFlatpickr() {
-    // Fecha de Nacimiento
-    const birthDate = flatpickr("#editFechaNacimiento", {
-        dateFormat: "d/m/Y",
-        locale: "es",
-        maxDate: "today",
-        altInput: true,
-        altFormat: "j F Y"
-    });
-
-    // Fecha de Vinculación
-    const vincDate = flatpickr("#editFechaVinculacion", {
-        dateFormat: "d/m/Y",
-        locale: "es",
-        altInput: true,
-        altFormat: "j F Y"
-    });
-
-    // Hora de Inicio
-    const horaInicio = flatpickr("#horaInicio", {
-        enableTime: true,
-        noCalendar: true,
-        dateFormat: "h:i K",
-        time_24hr: false,
-        minuteIncrement: 30
-    });
-
-    // Hora de Fin
-    const horaFin = flatpickr("#horaFin", {
-        enableTime: true,
-        noCalendar: true,
-        dateFormat: "h:i K",
-        time_24hr: false,
-        minuteIncrement: 30
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.time-picker-wrapper') && !e.target.closest('.duration-dropdown')) {
+            closeAllConfigDateDropdowns();
+        }
     });
 }
 
 function updateThemeIcon(theme) {
     const themeIcon = document.getElementById('theme-icon');
     const themeLabel = document.querySelector('.theme-label');
-    
-    if (themeIcon) {
-        themeIcon.className = theme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
-    }
-    if (themeLabel) {
-        themeLabel.textContent = theme === 'dark' ? 'Modo Oscuro' : 'Modo Claro';
-    }
+    if (themeIcon) themeIcon.className = theme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
+    if (themeLabel) themeLabel.textContent = theme === 'dark' ? 'Modo Oscuro' : 'Modo Claro';
 }
 
 function checkWelcomeMessage() {
     const urlParams = new URLSearchParams(window.location.search);
     const fromLogin = urlParams.get('fromLogin');
-    
     if (fromLogin === 'true') {
         const welcomeMsg = document.getElementById('welcomeMessage');
         if (welcomeMsg) {
@@ -131,11 +65,7 @@ function checkWelcomeMessage() {
 }
 
 function updateBadges() {
-    const badges = {
-        classesBadge: '3',
-        studentsBadge: '45'
-    };
-    
+    const badges = { classesBadge: '0', studentsBadge: '0' };
     Object.entries(badges).forEach(([id, value]) => {
         const element = document.getElementById(id);
         if (element) element.textContent = value;
@@ -148,736 +78,369 @@ function updateBadges() {
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebarOverlay');
-    
     if (sidebar) sidebar.classList.toggle('active');
     if (overlay) overlay.classList.toggle('active');
 }
 
-function closeMobileSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-    
-    if (sidebar && sidebar.classList.contains('active')) {
-        sidebar.classList.remove('active');
-        if (overlay) overlay.classList.remove('active');
-    }
-}
-
 function showSection(sectionName) {
-    // Actualizar menú
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.remove('active');
-        const itemText = item.textContent.toLowerCase();
-        if ((sectionName === 'schedules' && itemText.includes('horarios')) ||
-            (sectionName === 'classes' && itemText.includes('configuración')) ||
-            (sectionName === 'students' && itemText.includes('estudiantes')) ||
-            (sectionName === 'dashboard' && itemText.includes('dashboard'))) {
-            item.classList.add('active');
-        }
-    });
-    
-    // Cambiar sección
-    document.querySelectorAll('.content-section').forEach(section => {
-        section.classList.remove('active');
-    });
-    
+    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+    document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
+
+    const navItem = document.querySelector(`.nav-item[onclick*="'${sectionName}'"]`);
+    if (navItem) navItem.classList.add('active');
+
     const targetSection = document.getElementById(sectionName + '-section');
     if (targetSection) {
         targetSection.classList.add('active');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    
-    // Inicializar según sección
+
     if (sectionName === 'schedules') {
         showScheduleView('main');
-        cargarHorariosDesdeDB();
     }
 }
 
 function toggleDropdown() {
     const dropdownMenu = document.getElementById('navDropdownMenu');
-    const dropdownToggle = document.querySelector('.nav-dropdown-toggle');
-    
     if (dropdownMenu) dropdownMenu.classList.toggle('active');
-    if (dropdownToggle) dropdownToggle.classList.toggle('active');
-}
-
-function closeDropdown() {
-    const dropdownMenu = document.getElementById('navDropdownMenu');
-    const dropdownToggle = document.querySelector('.nav-dropdown-toggle');
-    
-    if (dropdownMenu) dropdownMenu.classList.remove('active');
-    if (dropdownToggle) dropdownToggle.classList.remove('active');
 }
 
 function logout() {
-    const overlay = document.createElement('div');
-    overlay.className = 'custom-alert-overlay';
-    
-    const dialog = document.createElement('div');
-    dialog.className = 'custom-alert-dialog';
-    dialog.innerHTML = `
-        <div class="custom-alert-icon">
-            <i class="fas fa-sign-out-alt"></i>
-        </div>
-        <h2 class="custom-alert-title">¿Cerrar Sesión?</h2>
-        <p class="custom-alert-message">¿Estás seguro de que deseas cerrar tu sesión?</p>
-        <div class="custom-alert-buttons">
-            <button class="custom-alert-btn cancel-btn" onclick="closeLogoutAlert()">
-                <i class="fa-solid fa-circle-xmark"></i> Cancelar
-            </button>
-            <button class="custom-alert-btn confirm-btn" onclick="confirmLogout()">
-                <i class="fas fa-check-circle"></i> Cerrar Sesión
-            </button>
-        </div>
-    `;
-    
-    overlay.appendChild(dialog);
-    document.body.appendChild(overlay);
-    setTimeout(() => overlay.classList.add('show'), 10);
-}
-
-function closeLogoutAlert() {
-    const overlay = document.querySelector('.custom-alert-overlay');
-    if (overlay) {
-        overlay.classList.remove('show');
-        setTimeout(() => overlay.remove(), 300);
+    if (confirm('¿Cerrar sesión?')) {
+        window.location.href = '?logout=true';
     }
 }
 
-function confirmLogout() {
-    window.location.href = '?logout=true';
-}
-
 // ========================================
-// UTILIDADES
+// DURACIÓN DROPDOWN
 // ========================================
-function convertTo12Hour(time24) {
-    const [hour, min] = time24.split(':').map(Number);
-    const isPM = hour >= 12;
-    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-    const period = isPM ? 'PM' : 'AM';
-    return `${displayHour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')} ${period}`;
-}
+function setupDurationDropdown() {
+    const horaInicio = document.getElementById('horaInicio');
+    const horaDisplay = document.getElementById('horaDisplay');
+    const durationButton = document.getElementById('durationButton');
+    const durationText = document.getElementById('durationText');
+    const durationMenu = document.getElementById('durationMenu');
 
-function convertTo24Hour(time12) {
-    const [time, period] = time12.split(' ');
-    let [hour, min] = time.split(':').map(Number);
-    
-    if (period === 'PM' && hour !== 12) hour += 12;
-    if (period === 'AM' && hour === 12) hour = 0;
-    
-    return `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
-}
-
-function formatTime(minutes) {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-}
-
-// ========================================
-// GESTIÓN DE HORARIOS
-// ========================================
-function showScheduleView(view) {
-    document.querySelectorAll('#schedules-section .schedules-view').forEach(v => v.classList.remove('active'));
-    
-    const viewMap = {
-        'main': 'schedules-main',
-        'create': 'schedules-create',
-        'view': 'schedules-view'
-    };
-    
-    const viewElement = document.getElementById(viewMap[view]);
-    if (viewElement) {
-        viewElement.classList.add('active');
-        if (view === 'create' && !horarioEnEdicion) {
-            limpiarFormularioHorario();
+    // Actualizar hora
+    function updateTimeDisplay() {
+        const time = horaInicio.value;
+        if (!time) {
+            horaDisplay.textContent = '--:--';
+            return;
         }
+        const [h, m] = time.split(':').map(Number);
+        const period = h < 12 ? 'a.m.' : 'p.m.';
+        const displayH = h === 0 ? 12 : h > 12 ? h - 12 : h;
+        horaDisplay.textContent = `${displayH.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} ${period}`;
     }
+
+    horaInicio.addEventListener('input', updateTimeDisplay);
+    horaInicio.addEventListener('change', updateTimeDisplay);
+    updateTimeDisplay();
+
+    // Dropdown
+    durationButton.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const isOpen = durationMenu.classList.contains('show');
+        closeAllDropdowns();
+        if (!isOpen) {
+            durationMenu.classList.add('show');
+            durationButton.classList.add('active');
+        }
+    });
+
+    document.querySelectorAll('.duration-option').forEach(option => {
+        option.addEventListener('click', function() {
+            document.querySelectorAll('.duration-option').forEach(opt => opt.classList.remove('selected'));
+            this.classList.add('selected');
+            blockDuration = parseInt(this.dataset.minutes);
+            durationText.textContent = this.textContent.trim(); // Solo el texto real
+            durationMenu.classList.remove('show');
+            durationButton.classList.remove('active');
+        });
+    });
+
+    function closeAllDropdowns() {
+        durationMenu.classList.remove('show');
+        durationButton.classList.remove('active');
+    }
+
+    document.addEventListener('click', closeAllDropdowns);
 }
 
+// ========================================
+// GENERAR TABLA
+// ========================================
 function generateScheduleGrid() {
-    const scheduleName = document.getElementById('scheduleName');
-    const horaInicio = document.getElementById('horaInicio');
-    const horaFin = document.getElementById('horaFin');
-    
-    if (!scheduleName || !scheduleName.value.trim()) {
-        alert('Por favor ingresa un nombre para el horario');
-        return;
-    }
+    const scheduleName = document.getElementById('scheduleName').value.trim();
+    const horaInicio = document.getElementById('horaInicio').value;
 
-    if (!horaInicio || !horaFin || !horaInicio.value || !horaFin.value) {
-        alert('Por favor selecciona las horas de inicio y fin');
-        return;
-    }
+    if (!scheduleName) return showError('scheduleName', 'Nombre requerido');
+    if (!horaInicio) return showError('horaInicio', 'Hora de inicio requerida');
 
-    // Convertir a formato 24 horas
-    const startTime = convertTo24Hour(horaInicio.value);
-    const endTime = convertTo24Hour(horaFin.value);
-    
-    const [startH, startM] = startTime.split(':').map(Number);
-    const [endH, endM] = endTime.split(':').map(Number);
-    const startMinutes = startH * 60 + startM;
-    const endMinutes = endH * 60 + endM;
-    const blockDurationValue = 60;
-    
-    if (startMinutes >= endMinutes) {
-        alert('La hora de fin debe ser mayor que la hora de inicio');
-        return;
-    }
-    
+    clearErrors(['scheduleName', 'horaInicio']);
+
+    const [h, m] = horaInicio.split(':').map(Number);
+    const start = h * 60 + m;
+    const end = start + blockDuration;
+    if (end > 1440) return alert('El horario excede el día');
+
     const timeSlots = [];
-    let currentTime = startMinutes;
-    
-    while (currentTime + blockDurationValue <= endMinutes) {
-        const blockStart = formatTime(currentTime);
-        const blockEnd = formatTime(currentTime + blockDurationValue);
-        timeSlots.push({ start: blockStart, end: blockEnd });
-        currentTime += blockDurationValue;
+    let current = start;
+    while (current + blockDuration <= end) {
+        timeSlots.push({
+            start: formatTime(current),
+            end: formatTime(current + blockDuration)
+        });
+        current += blockDuration;
     }
-    
-    if (timeSlots.length === 0) {
-        alert('No se pueden generar bloques con esta configuración');
-        return;
-    }
-    
-    const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
-    const tableBody = document.getElementById('scheduleTableBody');
-    if (!tableBody) return;
-    
-    tableBody.innerHTML = '';
-    
+
+    const tbody = document.getElementById('scheduleTableBody');
+    tbody.innerHTML = '';
     timeSlots.forEach(slot => {
-        const row = document.createElement('tr');
-        
-        const timeCell = document.createElement('td');
-        timeCell.className = 'time-cell';
-        timeCell.textContent = `${slot.start} - ${slot.end}`;
-        row.appendChild(timeCell);
-        
-        days.forEach(() => {
-            const cell = document.createElement('td');
-            cell.className = 'schedule-cell';
-            cell.onclick = function() { openAssignModal(this); };
-            cell.innerHTML = '<div class="empty-cell"><i class="fa-solid fa-plus"></i></div>';
-            row.appendChild(cell);
+        const tr = document.createElement('tr');
+        const tdTime = document.createElement('td');
+        tdTime.className = 'time-cell';
+        tdTime.textContent = `${slot.start} - ${slot.end}`;
+        tr.appendChild(tdTime);
+
+        ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'].forEach(() => {
+            const td = document.createElement('td');
+            td.className = 'schedule-cell';
+            td.onclick = () => openAssignModal(td);
+            td.innerHTML = '<div class="empty-cell"><i class="fa-solid fa-plus"></i></div>';
+            tr.appendChild(td);
         });
-        
-        tableBody.appendChild(row);
+        tbody.appendChild(tr);
     });
-    
-    const thead = document.querySelector('#scheduleGridCard .schedule-table thead tr');
-    if (thead) {
-        thead.innerHTML = '<th class="time-column">Hora</th>';
-        days.forEach(day => {
-            const th = document.createElement('th');
-            th.textContent = day;
-            thead.appendChild(th);
-        });
-    }
-    
-    const scheduleGridCard = document.getElementById('scheduleGridCard');
-    if (scheduleGridCard) {
-        scheduleGridCard.style.display = 'block';
-        setTimeout(() => {
-            scheduleGridCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
-    }
+
+    document.getElementById('scheduleGridCard').style.display = 'block';
 }
 
-function openAssignModal(cell) {
-    if (!cell) return;
-    
-    currentCell = cell;
-    const modal = document.getElementById('assignModal');
-    
-    if (modal) {
-        modal.classList.add('active');
-        
-        ['modalSubject', 'modalInstructor', 'modalRoom', 'modalNotes'].forEach(id => {
-            const element = document.getElementById(id);
-            if (element) element.value = '';
-        });
-    }
-}
-
-function closeAssignModal() {
-    const modal = document.getElementById('assignModal');
-    if (modal) modal.classList.remove('active');
-    currentCell = null;
-}
-
-function assignClass() {
-    const subject = document.getElementById('modalSubject');
-    const instructor = document.getElementById('modalInstructor');
-    const room = document.getElementById('modalRoom');
-    const notes = document.getElementById('modalNotes');
-    
-    if (!subject || !instructor || !room) {
-        alert('Error: Campos del modal no encontrados');
-        return;
-    }
-    
-    if (!subject.value || !instructor.value || !room.value) {
-        alert('Por favor completa todos los campos requeridos');
-        return;
-    }
-    
-    if (!currentCell) {
-        alert('Error: No se ha seleccionado una celda');
-        return;
-    }
-    
-    const instructorText = instructor.options[instructor.selectedIndex].text;
-    const subjectText = subject.options[subject.selectedIndex].text;
-    
-    const subjectColors = {
-        'matematicas': { bg: 'rgba(66, 133, 244, 0.1)', border: '#4285f4' },
-        'fisica': { bg: 'rgba(52, 168, 83, 0.1)', border: '#34a853' },
-        'quimica': { bg: 'rgba(251, 188, 4, 0.1)', border: '#fbbc04' },
-        'ingles': { bg: 'rgba(234, 67, 53, 0.1)', border: '#ea4335' },
-        'historia': { bg: 'rgba(156, 39, 176, 0.1)', border: '#9c27b0' }
-    };
-    
-    const colors = subjectColors[subject.value] || { bg: 'rgba(66, 133, 244, 0.1)', border: '#4285f4' };
-    
-    currentCell.className = 'schedule-cell assigned';
-    currentCell.style.background = colors.bg;
-    currentCell.style.borderLeft = `3px solid ${colors.border}`;
-    
-    const notesValue = notes ? notes.value : '';
-    
-    currentCell.innerHTML = `
-        <div class="assigned-cell">
-            <div class="cell-title">${subjectText}</div>
-            <div class="cell-info">
-                <i class="fa-solid fa-user"></i> ${instructorText}
-            </div>
-            <div class="cell-info">
-                <i class="fa-solid fa-door-open"></i> ${room.value}
-            </div>
-            ${notesValue ? `<div class="cell-info"><i class="fa-solid fa-note-sticky"></i> ${notesValue}</div>` : ''}
-            <button class="cell-remove" onclick="event.stopPropagation(); removeAssignment(this)">
-                <i class="fa-solid fa-times"></i>
-            </button>
-        </div>
-    `;
-    
-    currentCell.dataset.subject = subject.value;
-    currentCell.dataset.instructor = instructor.value;
-    currentCell.dataset.room = room.value;
-    currentCell.dataset.notes = notesValue;
-    
-    closeAssignModal();
-}
-
-function removeAssignment(button) {
-    const cell = button.closest('.schedule-cell');
-    if (!cell) return;
-    
-    cell.className = 'schedule-cell';
-    cell.style.background = '';
-    cell.style.borderLeft = '';
-    cell.innerHTML = '<div class="empty-cell"><i class="fa-solid fa-plus"></i></div>';
-    cell.onclick = function() { openAssignModal(this); };
-    
-    delete cell.dataset.subject;
-    delete cell.dataset.instructor;
-    delete cell.dataset.room;
-    delete cell.dataset.notes;
-}
-
+// ========================================
+// GUARDAR HORARIO
+// ========================================
 async function saveSchedule() {
-    const scheduleName = document.getElementById('scheduleName');
-    const horaInicio = document.getElementById('horaInicio');
-    const horaFin = document.getElementById('horaFin');
-    
-    if (!scheduleName || !scheduleName.value.trim()) {
-        alert('Por favor ingresa un nombre para el horario');
-        return;
-    }
-    
-    if (!horaInicio || !horaFin || !horaInicio.value || !horaFin.value) {
-        alert('Por favor completa las horas de inicio y fin');
-        return;
-    }
+    const scheduleName = document.getElementById('scheduleName').value.trim();
+    const horaInicio = document.getElementById('horaInicio').value;
+    if (!scheduleName || !horaInicio) return;
 
-    const startTime = convertTo24Hour(horaInicio.value);
-    const endTime = convertTo24Hour(horaFin.value);
-    const diasActivos = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
-    
+    const [h, m] = horaInicio.split(':').map(Number);
+    const horaFin = formatTime(h * 60 + m + blockDuration);
+
     const bloques = [];
-    const assignedCells = document.querySelectorAll('.schedule-cell.assigned');
-    
-    assignedCells.forEach(cell => {
+    document.querySelectorAll('.schedule-cell.assigned').forEach(cell => {
         const row = cell.closest('tr');
-        const timeCell = row.querySelector('.time-cell');
-        const cellIndex = Array.from(row.querySelectorAll('.schedule-cell')).indexOf(cell);
-        
-        if (timeCell && cellIndex >= 0 && cellIndex < diasActivos.length) {
-            bloques.push({
-                dia: diasActivos[cellIndex],
-                hora: timeCell.textContent,
-                materia: cell.dataset.subject || '',
-                instructor: cell.dataset.instructor || '',
-                aula: cell.dataset.room || '',
-                notas: cell.dataset.notes || ''
-            });
-        }
+        const timeCell = row.querySelector('.time-cell').textContent;
+        const diaIndex = Array.from(row.cells).indexOf(cell) - 1;
+        const dia = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'][diaIndex];
+        bloques.push({
+            dia,
+            hora: timeCell,
+            materia: cell.dataset.subject || '',
+            instructor: cell.dataset.instructor || '',
+            aula: cell.dataset.room || '',
+            notas: cell.dataset.notes || ''
+        });
     });
-    
+
     const horarioData = {
-        id: horarioEnEdicion ? horarioEnEdicion.id : null,
-        nombre_horario: scheduleName.value,
-        hora_inicio: startTime,
-        hora_fin: endTime,
-        duracion_bloque: 60,
-        dias_activos: diasActivos,
-        bloques: bloques,
+        id: horarioEnEdicion?.id || null,
+        nombre_horario: scheduleName,
+        hora_inicio: horaInicio,
+        hora_fin: horaFin,
+        duracion_bloque: blockDuration,
+        dias_activos: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'],
+        bloques,
         template_tipo: 'semanal'
     };
-    
+
     try {
         const response = await fetch('guardar_horario.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(horarioData)
         });
-        
         const data = await response.json();
-        
         if (data.success) {
             alert(data.message);
+            const nuevoId = data.horario_id || horarioEnEdicion?.id;
+            const nuevoHorario = { ...horarioData, id: nuevoId, total_clases: bloques.length, estado: 'Activo' };
+            if (horarioEnEdicion) {
+                actualizarTarjetaHorario(nuevoHorario);
+            } else {
+                agregarTarjetaHorario(nuevoHorario);
+            }
             showScheduleView('main');
-            cargarHorariosDesdeDB();
             limpiarFormularioHorario();
         } else {
             alert('Error: ' + data.message);
         }
     } catch (error) {
-        console.error('Error al guardar:', error);
-        alert('Error al guardar el horario');
+        alert('Error al guardar');
     }
 }
 
-async function cargarHorariosDesdeDB() {
-    try {
-        const response = await fetch('cargar_horarios.php');
-        const data = await response.json();
-        
-        if (data.success) {
-            mostrarHorariosEnGrid(data.horarios);
-            actualizarBadgesHorarios(data.horarios);
-        } else {
-            console.error('Error al cargar horarios:', data.message);
-        }
-    } catch (error) {
-        console.error('Error en la petición:', error);
-    }
-}
+// ========================================
+// TARJETAS DINÁMICAS
+// ========================================
+function agregarTarjetaHorario(horario) {
+    const container = document.getElementById('schedulesGrid');
+    const empty = container.querySelector('.empty-state');
+    if (empty) empty.remove();
 
-function mostrarHorariosEnGrid(horarios) {
-    const container = document.querySelector('.schedules-grid');
-    if (!container) return;
-    
-    if (horarios.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state" style="grid-column: 1/-1; text-align: center; padding: 60px 20px;">
-                <i class="fa-solid fa-calendar-xmark" style="font-size: 64px; color: var(--text-secondary); margin-bottom: 20px;"></i>
-                <h3 style="margin-bottom: 10px;">No tienes horarios creados</h3>
-                <p style="color: var(--text-secondary);">Crea tu primer horario haciendo clic en "Crear Nuevo Horario"</p>
+    const dias = horario.dias_activos.join(', ');
+    const badge = horario.estado === 'Activo' ? 'badge-success' : 'badge-warning';
+
+    const card = document.createElement('div');
+    card.className = 'schedule-card';
+    card.dataset.id = horario.id;
+    card.innerHTML = `
+        <div class="schedule-card-header">
+            <div>
+                <h3>${horario.nombre_horario}</h3>
+                <p class="schedule-meta">
+                    <i class="fa-solid fa-calendar-days"></i> ${dias} • ${horario.hora_inicio} - ${horario.hora_fin}
+                </p>
             </div>
-        `;
-        return;
-    }
-    
-    container.innerHTML = horarios.map(horario => {
-        const diasTexto = Array.isArray(horario.dias_activos) ? horario.dias_activos.join(', ') : 'No definido';
-        const badgeClass = horario.estado === 'Activo' ? 'badge-success' : 'badge-warning';
-        
-        return `
-            <div class="schedule-card">
-                <div class="schedule-card-header">
-                    <div>
-                        <h3>${horario.nombre || 'Sin nombre'}</h3>
-                        <p class="schedule-meta">
-                            <i class="fa-solid fa-calendar-days"></i>
-                            ${diasTexto} • ${horario.hora_inicio || '00:00'} - ${horario.hora_fin || '00:00'}
-                        </p>
-                    </div>
-                    <span class="badge ${badgeClass}">${horario.estado}</span>
-                </div>
-                <div class="schedule-card-body">
-                    <div class="schedule-stats">
-                        <div class="stat-item">
-                            <i class="fa-solid fa-book"></i>
-                            <span>${horario.total_clases || 0} Clases</span>
-                        </div>
-                        <div class="stat-item">
-                            <i class="fa-solid fa-clock"></i>
-                            <span>${horario.bloques || 0} Bloques</span>
-                        </div>
-                        <div class="stat-item">
-                            <i class="fa-solid fa-calendar"></i>
-                            <span>${new Date(horario.fecha_creacion).toLocaleDateString()}</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="schedule-card-footer">
-                    <button class="btn btn-secondary btn-sm" onclick="verHorarioDB(${horario.id})">
-                        <i class="fa-solid fa-eye"></i> Ver Horario
-                    </button>
-                    <button class="btn btn-secondary btn-sm" onclick="editarHorarioDB(${horario.id})">
-                        <i class="fa-solid fa-edit"></i> Editar
-                    </button>
-                    <button class="btn btn-danger btn-sm" onclick="eliminarHorarioDB(${horario.id})">
-                        <i class="fa-solid fa-trash"></i>
-                    </button>
-                </div>
+            <span class="badge ${badge}">${horario.estado}</span>
+        </div>
+        <div class="schedule-card-body">
+            <div class="schedule-stats">
+                <div class="stat-item"><i class="fa-solid fa-book"></i><span>${horario.total_clases} Clases</span></div>
+                <div class="stat-item"><i class="fa-solid fa-clock"></i><span>${horario.bloques?.length || 0} Bloques</span></div>
             </div>
-        `;
-    }).join('');
+        </div>
+        <div class="schedule-card-footer">
+            <button class="btn btn-secondary btn-sm" onclick="verHorarioDB(${horario.id})">Ver</button>
+            <button class="btn btn-secondary btn-sm" onclick="editarHorarioDB(${horario.id})">Editar</button>
+            <button class="btn btn-danger btn-sm" onclick="eliminarHorarioDB(${horario.id})"></button>
+        </div>
+    `;
+    container.appendChild(card);
 }
 
-function actualizarBadgesHorarios(horarios) {
-    const classesBadge = document.getElementById('classesBadge');
-    if (classesBadge) {
-        const totalClases = horarios.reduce((sum, h) => sum + (h.total_clases || 0), 0);
-        classesBadge.textContent = totalClases;
+function actualizarTarjetaHorario(horario) {
+    const card = document.querySelector(`.schedule-card[data-id="${horario.id}"]`);
+    if (card) {
+        const dias = horario.dias_activos.join(', ');
+        const badge = horario.estado === 'Activo' ? 'badge-success' : 'badge-warning';
+        card.querySelector('h3').textContent = horario.nombre_horario;
+        card.querySelector('.schedule-meta').innerHTML = `<i class="fa-solid fa-calendar-days"></i> ${dias} • ${horario.hora_inicio} - ${horario.hora_fin}`;
+        card.querySelector('.badge').className = `badge ${badge}`;
+        card.querySelector('.badge').textContent = horario.estado;
+        card.querySelectorAll('.stat-item span')[0].textContent = `${horario.total_clases} Clases`;
+        card.querySelectorAll('.stat-item span')[1].textContent = `${horario.bloques?.length || 0} Bloques`;
     }
 }
 
+// ========================================
+// VER / EDITAR / ELIMINAR
+// ========================================
 async function verHorarioDB(id) {
     try {
         const response = await fetch(`obtener_horario.php?id=${id}`);
         const data = await response.json();
-        
         if (data.success) {
             mostrarHorarioVisualizacion(data.horario);
             showScheduleView('view');
-        } else {
-            alert('Error: ' + data.message);
+            horarioActualId = id;
+            document.getElementById('btnEditarDesdeVista').onclick = () => editarHorarioDB(id);
         }
     } catch (error) {
-        console.error('Error:', error);
-        alert('Error al cargar el horario');
+        alert('Error al cargar');
     }
 }
 
 function mostrarHorarioVisualizacion(horario) {
-    const viewSection = document.getElementById('schedules-view');
-    if (!viewSection) return;
-    
-    const header = viewSection.querySelector('.content-header h1');
-    if (header) header.textContent = horario.nombre_horario || 'Horario';
-    
-    const container = viewSection.querySelector('.schedule-view-container');
-    if (!container) return;
-    
-    const diasActivos = horario.dias_activos || [];
+    document.getElementById('viewHorarioNombre').textContent = horario.nombre_horario;
+    const container = document.getElementById('viewScheduleContainer');
+    const dias = horario.dias_activos;
     const bloques = horario.bloques || [];
-    const horariosUnicos = [...new Set(bloques.map(b => b.hora))].sort();
-    
-    let theadHTML = '<tr><th class="time-column">Hora</th>';
-    diasActivos.forEach(dia => { theadHTML += `<th>${dia}</th>`; });
-    theadHTML += '</tr>';
-    
-    let tbodyHTML = '';
-    horariosUnicos.forEach(hora => {
-        tbodyHTML += '<tr>';
-        tbodyHTML += `<td class="time-cell">${hora}</td>`;
-        
-        diasActivos.forEach(dia => {
-            const bloque = bloques.find(b => b.hora === hora && b.dia === dia);
-            
-            if (bloque) {
-                const colors = getSubjectColors(bloque.materia);
-                tbodyHTML += `
-                    <td class="schedule-cell assigned view-mode" style="background: ${colors.bg}; border-left: 3px solid ${colors.border}">
-                        <div class="assigned-cell">
-                            <div class="cell-title">${bloque.materia || 'Sin materia'}</div>
-                            <div class="cell-info">
-                                <i class="fa-solid fa-door-open"></i> ${bloque.aula || 'Sin aula'}
-                            </div>
-                            ${bloque.notas ? `<div class="cell-info"><i class="fa-solid fa-note-sticky"></i> ${bloque.notas}</div>` : ''}
-                        </div>
-                    </td>
-                `;
+    const horas = [...new Set(bloques.map(b => b.hora))].sort();
+
+    let html = '<table class="schedule-table view-mode"><thead><tr><th class="time-column">Hora</th>';
+    dias.forEach(d => html += `<th>${d}</th>`);
+    html += '</tr></thead><tbody>';
+
+    horas.forEach(hora => {
+        html += `<tr><td class="time-cell">${hora}</td>`;
+        dias.forEach(dia => {
+            const b = bloques.find(x => x.hora === hora && x.dia === dia);
+            if (b) {
+                const colors = getSubjectColors(b.materia);
+                html += `<td class="schedule-cell assigned view-mode" style="background:${colors.bg};border-left:3px solid ${colors.border}">
+                    <div class="assigned-cell">
+                        <div class="cell-title">${b.materia}</div>
+                        <div class="cell-info"><i class="fa-solid fa-door-open"></i> ${b.aula}</div>
+                        ${b.notas ? `<div class="cell-info"><i class="fa-solid fa-note-sticky"></i> ${b.notas}</div>` : ''}
+                    </div>
+                </td>`;
             } else {
-                tbodyHTML += '<td class="schedule-cell"></td>';
+                html += '<td class="schedule-cell"></td>';
             }
         });
-        
-        tbodyHTML += '</tr>';
+        html += '</tr>';
     });
-    
-    container.innerHTML = `
-        <table class="schedule-table view-mode">
-            <thead>${theadHTML}</thead>
-            <tbody>${tbodyHTML}</tbody>
-        </table>
-    `;
+    html += '</tbody></table>';
+    container.innerHTML = html;
 }
 
 async function editarHorarioDB(id) {
     try {
         const response = await fetch(`obtener_horario.php?id=${id}`);
         const data = await response.json();
-        
         if (data.success) {
             horarioEnEdicion = data.horario;
             cargarDatosEnFormulario(data.horario);
+            document.getElementById('createEditTitle').textContent = 'Editar Horario';
             showScheduleView('create');
-        } else {
-            alert('Error: ' + data.message);
         }
     } catch (error) {
-        console.error('Error:', error);
-        alert('Error al cargar el horario');
+        alert('Error al cargar');
     }
-}
-
-function cargarDatosEnFormulario(horario) {
-    const scheduleName = document.getElementById('scheduleName');
-    if (scheduleName) scheduleName.value = horario.nombre_horario || '';
-    
-    if (horario.hora_inicio) {
-        const horaInicio = document.getElementById('horaInicio');
-        if (horaInicio) {
-            horaInicio.value = convertTo12Hour(horario.hora_inicio);
-        }
-    }
-    
-    if (horario.hora_fin) {
-        const horaFin = document.getElementById('horaFin');
-        if (horaFin) {
-            horaFin.value = convertTo12Hour(horario.hora_fin);
-        }
-    }
-    
-    generateScheduleGrid();
-    
-    setTimeout(() => {
-        if (horario.bloques && Array.isArray(horario.bloques)) {
-            horario.bloques.forEach(bloque => cargarBloqueEnCelda(bloque));
-        }
-    }, 200);
-}
-
-function cargarBloqueEnCelda(bloque) {
-    const rows = document.querySelectorAll('#scheduleTableBody tr');
-    
-    rows.forEach(row => {
-        const timeCell = row.querySelector('.time-cell');
-        if (timeCell && timeCell.textContent === bloque.hora) {
-            const cells = row.querySelectorAll('.schedule-cell');
-            const thead = document.querySelector('#scheduleGridCard .schedule-table thead tr');
-            const headers = thead ? Array.from(thead.querySelectorAll('th')).slice(1) : [];
-            
-            cells.forEach((cell, index) => {
-                if (headers[index] && headers[index].textContent === bloque.dia) {
-                    const colors = getSubjectColors(bloque.materia);
-                    
-                    cell.className = 'schedule-cell assigned';
-                    cell.style.background = colors.bg;
-                    cell.style.borderLeft = `3px solid ${colors.border}`;
-                    
-                    cell.innerHTML = `
-                        <div class="assigned-cell">
-                            <div class="cell-title">${bloque.materia}</div>
-                            <div class="cell-info">
-                                <i class="fa-solid fa-door-open"></i> ${bloque.aula}
-                            </div>
-                            ${bloque.notas ? `<div class="cell-info"><i class="fa-solid fa-note-sticky"></i> ${bloque.notas}</div>` : ''}
-                            <button class="cell-remove" onclick="event.stopPropagation(); removeAssignment(this)">
-                                <i class="fa-solid fa-times"></i>
-                            </button>
-                        </div>
-                    `;
-                    
-                    cell.dataset.subject = bloque.materia;
-                    cell.dataset.instructor = bloque.instructor;
-                    cell.dataset.room = bloque.aula;
-                    cell.dataset.notes = bloque.notas || '';
-                }
-            });
-        }
-    });
 }
 
 async function eliminarHorarioDB(id) {
-    if (!confirm('¿Estás seguro de que deseas eliminar este horario? Esta acción no se puede deshacer.')) {
-        return;
-    }
-    
+    if (!confirm('¿Eliminar este horario?')) return;
     try {
         const response = await fetch('eliminar_horario.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: id })
+            body: JSON.stringify({ id })
         });
-        
         const data = await response.json();
-        
         if (data.success) {
+            const card = document.querySelector(`.schedule-card[data-id="${id}"]`);
+            if (card) {
+                card.remove();
+                if (document.querySelectorAll('.schedule-card').length === 0) {
+                    document.getElementById('schedulesGrid').innerHTML = `
+                        <div class="empty-state" style="grid-column: 1/-1; text-align: center; padding: 60px 20px;">
+                            <i class="fa-solid fa-calendar-xmark" style="font-size: 64px; color: var(--text-secondary); margin-bottom: 20px;"></i>
+                            <h3 style="margin-bottom: 10px;">No tienes horarios creados</h3>
+                            <p style="color: var(--text-secondary);">Haz clic en "Crear Nuevo Horario" para comenzar</p>
+                        </div>
+                    `;
+                }
+            }
             alert(data.message);
-            cargarHorariosDesdeDB();
-        } else {
-            alert('Error: ' + data.message);
         }
     } catch (error) {
-        console.error('Error:', error);
-        alert('Error al eliminar el horario');
+        alert('Error al eliminar');
     }
 }
 
-function limpiarFormularioHorario() {
-    horarioEnEdicion = null;
-    
-    const scheduleName = document.getElementById('scheduleName');
-    if (scheduleName) scheduleName.value = '';
-    
-    const horaInicio = document.getElementById('horaInicio');
-    const horaFin = document.getElementById('horaFin');
-    if (horaInicio) horaInicio.value = '';
-    if (horaFin) horaFin.value = '';
-    
-    const scheduleGridCard = document.getElementById('scheduleGridCard');
-    if (scheduleGridCard) scheduleGridCard.style.display = 'none';
-}
-
-function getSubjectColors(materia) {
-    const colors = {
-        'matematicas': { bg: 'rgba(66, 133, 244, 0.1)', border: '#4285f4' },
-        'fisica': { bg: 'rgba(52, 168, 83, 0.1)', border: '#34a853' },
-        'quimica': { bg: 'rgba(251, 188, 4, 0.1)', border: '#fbbc04' },
-        'ingles': { bg: 'rgba(234, 67, 53, 0.1)', border: '#ea4335' },
-        'historia': { bg: 'rgba(156, 39, 176, 0.1)', border: '#9c27b0' }
-    };
-    return colors[materia] || { bg: 'rgba(66, 133, 244, 0.1)', border: '#4285f4' };
-}
-
 // ========================================
-// CONFIGURACIÓN DE USUARIO
+// CONFIGURACIÓN
 // ========================================
 function showConfigView(view) {
-    document.querySelectorAll('#classes-section .schedules-view').forEach(v => {
-        v.classList.remove('active');
-    });
-    
+    document.querySelectorAll('#classes-section .schedules-view').forEach(v => v.classList.remove('active'));
     const viewMap = { 'main': 'config-main', 'edit': 'config-edit' };
-    const viewElement = document.getElementById(viewMap[view]);
-    
-    if (viewElement) {
-        viewElement.classList.add('active');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        
-        if (view === 'edit') {
-            setTimeout(() => {
-                cargarDatosInstructor();
-            }, 100);
-        }
+    const el = document.getElementById(viewMap[view]);
+    if (el) {
+        el.classList.add('active');
+        if (view === 'edit') setTimeout(cargarDatosInstructor, 100);
     }
 }
 
@@ -885,34 +448,17 @@ async function cargarDatosInstructor() {
     try {
         const response = await fetch('obtener_datos_instructor.php');
         const data = await response.json();
-        
-        if (data.success && data.instructor) {
+        if (data.success) {
             const i = data.instructor;
             document.getElementById('editCedula').value = i.cedula || '';
             document.getElementById('editTelefono').value = i.telefono || '';
+            document.getElementById('editFechaNacimiento').value = i.fecha_nacimiento || '';
+            document.getElementById('editFechaVinculacion').value = i.fecha_vinculacion || '';
             document.getElementById('editTituloProfesional').value = i.titulo_profesional || '';
             document.getElementById('editEspecialidad').value = i.especialidad || '';
-            
-            // Convertir y mostrar fecha de nacimiento
-            if (i.fecha_nacimiento) {
-                const birthDate = new Date(i.fecha_nacimiento);
-                const day = birthDate.getDate().toString().padStart(2, '0');
-                const month = (birthDate.getMonth() + 1).toString().padStart(2, '0');
-                const year = birthDate.getFullYear();
-                document.getElementById('editFechaNacimiento').value = `${day}/${month}/${year}`;
-            }
-            
-            // Convertir y mostrar fecha de vinculación
-            if (i.fecha_vinculacion) {
-                const vincDate = new Date(i.fecha_vinculacion);
-                const day = vincDate.getDate().toString().padStart(2, '0');
-                const month = (vincDate.getMonth() + 1).toString().padStart(2, '0');
-                const year = vincDate.getFullYear();
-                document.getElementById('editFechaVinculacion').value = `${day}/${month}/${year}`;
-            }
         }
     } catch (error) {
-        console.error('Error al cargar datos:', error);
+        console.error(error);
     }
 }
 
@@ -926,10 +472,8 @@ async function savePersonalInfo() {
         especialidad: document.getElementById('editEspecialidad').value.trim()
     };
 
-    console.log('Datos a enviar:', formData); // Debug
-
     if (!formData.cedula || !formData.telefono) {
-        alert('Por favor completa los campos requeridos (Cédula y Teléfono)');
+        alert('Cédula y teléfono son obligatorios');
         return;
     }
 
@@ -939,26 +483,246 @@ async function savePersonalInfo() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
         });
-        
         const data = await response.json();
-        
-        console.log('Respuesta del servidor:', data); // Debug
-        
         if (data.success) {
-            alert('Información actualizada exitosamente');
+            alert('Datos guardados');
             showConfigView('main');
         } else {
-            alert('Error: ' + data.message);
+            alert(data.message);
         }
     } catch (error) {
-        console.error('Error:', error);
-        alert('Error al conectar con el servidor');
+        alert('Error de conexión');
     }
 }
 
 // ========================================
-// LOG DE CONFIRMACIÓN
+// UTILIDADES
 // ========================================
-console.log('✅ Panel JavaScript con Flatpickr cargado correctamente');
-console.log('✅ Funciones de horarios activas');
-console.log('✅ Funciones de configuración activas');
+function formatTime(minutes) {
+    const h = Math.floor(minutes / 60) % 24;
+    const m = minutes % 60;
+    const period = h < 12 ? 'a.m.' : 'p.m.';
+    const displayH = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    return `${displayH.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} ${period}`;
+}
+
+function getSubjectColors(materia) {
+    const colors = {
+        'matematicas': { bg: 'rgba(66, 133, 244, 0.1)', border: '#4285f4' },
+        'fisica': { bg: 'rgba(52, 168, 83, 0.1)', border: '#34a853' },
+        'quimica': { bg: 'rgba(251, 188, 4, 0.1)', border: '#fbbc04' }
+    };
+    return colors[materia?.toLowerCase()] || { bg: 'rgba(66, 133, 244, 0.1)', border: '#4285f4' };
+}
+
+function limpiarFormularioHorario() {
+    horarioEnEdicion = null;
+    blockDuration = 60;
+    document.getElementById('scheduleName').value = '';
+    document.getElementById('horaInicio').value = '09:00';
+    document.getElementById('durationButton').innerHTML = '1 hora <span class="arrow-down">Down Arrow</span>';
+    document.querySelectorAll('.duration-option').forEach(opt => opt.classList.toggle('selected', opt.dataset.minutes == '60'));
+    document.getElementById('scheduleGridCard').style.display = 'none';
+    document.getElementById('createEditTitle').textContent = 'Crear Nuevo Horario';
+}
+
+function showScheduleView(view) {
+    document.querySelectorAll('#schedules-section .schedules-view').forEach(v => v.classList.remove('active'));
+    const viewMap = { 'main': 'schedules-main', 'create': 'schedules-create', 'view': 'schedules-view' };
+    const el = document.getElementById(viewMap[view]);
+    if (el) el.classList.add('active');
+    if (view === 'create' && !horarioEnEdicion) limpiarFormularioHorario();
+}
+
+function showError(id, msg) {
+    const input = document.getElementById(id);
+    if (input) {
+        input.classList.add('error');
+        const err = document.createElement('div');
+        err.className = 'error-message';
+        err.textContent = msg;
+        input.parentNode.appendChild(err);
+        setTimeout(() => {
+            input.classList.remove('error');
+            err.remove();
+        }, 3000);
+    }
+}
+
+function clearErrors(ids) {
+    ids.forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.classList.remove('error');
+            const err = input.parentNode.querySelector('.error-message');
+            if (err) err.remove();
+        }
+    });
+}
+
+// ========================================
+// MODAL Y CALENDARIO
+// ========================================
+let modalCalendarType = null;
+let modalCurrentDate = new Date();
+
+function openDateModal(type) {
+    modalCalendarType = type;
+    modalCurrentDate = new Date();
+    document.getElementById('calendarModal').classList.add('active');
+    renderModalCalendar();
+}
+
+function closeCalendarModal() {
+    document.getElementById('calendarModal').classList.remove('active');
+}
+
+function previousMonthModal() {
+    modalCurrentDate.setMonth(modalCurrentDate.getMonth() - 1);
+    renderModalCalendar();
+}
+
+function nextMonthModal() {
+    modalCurrentDate.setMonth(modalCurrentDate.getMonth() + 1);
+    renderModalCalendar();
+}
+
+function renderModalCalendar() {
+    const year = modalCurrentDate.getFullYear();
+    const month = modalCurrentDate.getMonth();
+    const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    document.getElementById('modalCalendarMonth').textContent = `${monthNames[month]} ${year}`;
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const container = document.getElementById('modalCalendarDays');
+    container.innerHTML = '';
+
+    for (let i = firstDay - 1; i >= 0; i--) {
+        const el = document.createElement('div');
+        el.className = 'calendar-day other-month';
+        el.textContent = new Date(year, month, 0).getDate() - i;
+        container.appendChild(el);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+        const el = document.createElement('div');
+        el.className = 'calendar-day';
+        el.textContent = day;
+        if (day === new Date().getDate() && month === new Date().getMonth() && year === new Date().getFullYear()) {
+            el.classList.add('today');
+        }
+        el.onclick = () => {
+            const inputId = modalCalendarType === 'nacimiento' ? 'editFechaNacimiento' : 'editFechaVinculacion';
+            const input = document.getElementById(inputId);
+            if (input) {
+                input.value = `${day.toString().padStart(2, '0')}/${(month + 1).toString().padStart(2, '0')}/${year}`;
+            }
+            closeCalendarModal();
+        };
+        container.appendChild(el);
+    }
+
+    const remaining = 42 - container.children.length;
+    for (let day = 1; day <= remaining; day++) {
+        const el = document.createElement('div');
+        el.className = 'calendar-day other-month';
+        el.textContent = day;
+        container.appendChild(el);
+    }
+}
+
+function selectCurrentModalDate() {
+    const today = new Date();
+    const day = today.getDate().toString().padStart(2, '0');
+    const month = (today.getMonth() + 1).toString().padStart(2, '0');
+    const year = today.getFullYear();
+    const formatted = `${day}/${month}/${year}`;
+    const inputId = modalCalendarType === 'nacimiento' ? 'editFechaNacimiento' : 'editFechaVinculacion';
+    const input = document.getElementById(inputId);
+    if (input) input.value = formatted;
+    closeCalendarModal();
+}
+
+function cargarDatosEnFormulario(horario) {
+    document.getElementById('scheduleName').value = horario.nombre_horario;
+    document.getElementById('horaInicio').value = horario.hora_inicio;
+    blockDuration = horario.duracion_bloque;
+    document.getElementById('durationButton').innerHTML = `${blockDuration === 30 ? '30 minutos' : blockDuration === 120 ? '2 horas' : '1 hora'} <span class="arrow-down">Down Arrow</span>`;
+    document.querySelectorAll('.duration-option').forEach(opt => opt.classList.toggle('selected', parseInt(opt.dataset.minutes) === blockDuration));
+    generateScheduleGrid();
+    setTimeout(() => {
+        horario.bloques.forEach(b => {
+            const [start, end] = b.hora.split(' - ');
+            const [sh, sm] = start.split(':').map(Number);
+            const minutes = sh * 60 + sm;
+            const rowIndex = Math.floor((minutes - (sh * 60 + sm)) / blockDuration);
+            const diaIndex = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'].indexOf(b.dia);
+            const cell = document.querySelectorAll('#scheduleTableBody tr')[rowIndex]?.querySelectorAll('.schedule-cell')[diaIndex];
+            if (cell) {
+                const colors = getSubjectColors(b.materia);
+                cell.className = 'schedule-cell assigned';
+                cell.style.background = colors.bg;
+                cell.style.borderLeft = `3px solid ${colors.border}`;
+                cell.innerHTML = `
+                    <div class="assigned-cell">
+                        <div class="cell-title">${b.materia}</div>
+                        <div class="cell-info"><i class="fa-solid fa-user"></i> ${b.instructor}</div>
+                        <div class="cell-info"><i class="fa-solid fa-door-open"></i> ${b.aula}</div>
+                        ${b.notas ? `<div class="cell-info"><i class="fa-solid fa-note-sticky"></i> ${b.notas}</div>` : ''}
+                        <button class="cell-remove" onclick="event.stopPropagation(); removeAssignment(this)"><i class="fa-solid fa-times"></i></button>
+                    </div>
+                `;
+                cell.dataset.subject = b.materia;
+                cell.dataset.instructor = b.instructor;
+                cell.dataset.room = b.aula;
+                cell.dataset.notes = b.notas;
+            }
+        });
+    }, 100);
+}
+
+function openAssignModal(cell) {
+    currentCell = cell;
+    // Aquí iría el modal de asignación
+    const materia = prompt('Materia:');
+    const instructor = prompt('Instructor:');
+    const aula = prompt('Aula:');
+    const notas = prompt('Notas (opcional):');
+    if (materia && instructor && aula) {
+        const colors = getSubjectColors(materia);
+        cell.className = 'schedule-cell assigned';
+        cell.style.background = colors.bg;
+        cell.style.borderLeft = `3px solid ${colors.border}`;
+        cell.innerHTML = `
+            <div class="assigned-cell">
+                <div class="cell-title">${materia}</div>
+                <div class="cell-info"><i class="fa-solid fa-user"></i> ${instructor}</div>
+                <div class="cell-info"><i class="fa-solid fa-door-open"></i> ${aula}</div>
+                ${notas ? `<div class="cell-info"><i class="fa-solid fa-note-sticky"></i> ${notas}</div>` : ''}
+                <button class="cell-remove" onclick="event.stopPropagation(); removeAssignment(this)"><i class="fa-solid fa-times"></i></button>
+            </div>
+        `;
+        cell.dataset.subject = materia;
+        cell.dataset.instructor = instructor;
+        cell.dataset.room = aula;
+        cell.dataset.notes = notas;
+    }
+}
+
+function removeAssignment(btn) {
+    const cell = btn.closest('.schedule-cell');
+    cell.className = 'schedule-cell';
+    cell.style.background = '';
+    cell.style.borderLeft = '';
+    cell.innerHTML = '<div class="empty-cell"><i class="fa-solid fa-plus"></i></div>';
+    cell.onclick = () => openAssignModal(cell);
+    delete cell.dataset.subject;
+    delete cell.dataset.instructor;
+    delete cell.dataset.room;
+    delete cell.dataset.notes;
+}
+
+function exportarPDF() {
+    alert('Exportar PDF (próximamente)');
+}
