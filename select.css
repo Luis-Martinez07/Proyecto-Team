@@ -93,12 +93,14 @@
 }
 
 .calendar-btn {
-    background: var(--bg-secondary, #f5f5f5);
-    border: none;
-    padding: 8px 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    padding: 12px;
+    margin: 0 5px;
+    font-size: 16px;
     border-radius: 6px;
     cursor: pointer;
-    color: var(--text-primary, #333);
+    color: var(--text-primary);
     transition: all 0.2s;
     display: flex;
     align-items: center;
@@ -106,9 +108,13 @@
 }
 
 .calendar-btn:hover {
-    background: var(--primary-color, #4285f4);
+    background: var(--primary-color);
     color: white;
+    border-color: var(--primary-color);
 }
+
+
+
 
 .calendar-weekdays {
     display: grid;

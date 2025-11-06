@@ -49,6 +49,7 @@ if (strlen($iniciales) == 0) {
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="panel.css">
     <link rel="stylesheet" href="select.css">
+    <link rel="stylesheet" href="mens.css">
     <title>Panel Instructor</title>
 </head>
 <body>
@@ -98,8 +99,20 @@ if (strlen($iniciales) == 0) {
         
         <div class="nav-item" onclick="showSection('students')">
             <span class="nav-icon"><i class="fa-solid fa-user-graduate"></i></span>
-            <span>Estudiantes</span>
+            <span>Aprendices</span>
             <span class="nav-badge" id="studentsBadge">0</span>
+        </div>
+
+        <div class="nav-item" onclick="showSection('messages')">
+            <span class="nav-icon"><i class="fas fa-comments"></i></span>
+            <span>Mensajes</span>
+            <span class="nav-badge" id="messageBadge" style="display: none;">0</span>
+        </div>
+
+        <div class="nav-item" onclick="showSection('notifications')">
+            <span class="nav-icon"><i class="fa-regular fa-bell"></i></span>
+            <span>Notificaciones</span>
+            <span class="nav-badge" id="notificationBadge" style="display: none;">0</span>
         </div>
     </nav>
 
@@ -149,6 +162,14 @@ if (strlen($iniciales) == 0) {
                     <i class="fa-regular fa-calendar accion-icon"></i> 
                     <div><h3>Gestionar Horarios</h3><p>Administra y organiza tus horarios de clases de manera eficiente.</p></div>
                 </div>
+                <div class="accion-card" onclick="showSection('messages')">
+                    <i class="fas fa-comments accion-icon"></i>
+                    <div>
+                        <h3>Mensajes</h3>
+                        <p>Comunícate con el coordinador académico.</p>
+                        <span class="message-counter" id="messagesCounter" style="display: none;">0</span>
+                    </div>
+                </div>
                 <div class="accion-card" onclick="showSection('classes')">
                     <i class="fa-solid fa-gear accion-icon"></i>
                     <div><h3>Configuración</h3><p>Aquí puedes hacer los cambios en tu cuenta.</p></div>
@@ -178,7 +199,7 @@ if (strlen($iniciales) == 0) {
             <!-- GRID VACÍO AL INICIO -->
             <div class="schedules-grid" id="schedulesGrid">
                 <div class="empty-state" style="grid-column: 1/-1; text-align: center; padding: 60px 20px;">
-                    <i class="fa-solid fa-calendar-xmark" style="font-size: 64px; color: var(--text-secondary); margin-bottom: 20px;"></i>
+                   <i class="fa-regular fa-calendar-xmark" style="font-size: 64px; color: var(--text-secondary); margin-bottom: 20px;"></i>
                     <h3 style="margin-bottom: 10px;">No tienes horarios creados</h3>
                     <p style="color: var(--text-secondary);">Haz clic en "Crear Nuevo Horario" para comenzar</p>
                 </div>
@@ -293,6 +314,69 @@ if (strlen($iniciales) == 0) {
                 </div>
             </div>
             <div class="schedule-view-container" id="viewScheduleContainer"></div>
+        </div>
+    </div>
+
+    <!-- MENSAJES -->
+    <div id="messages-section" class="content-section">
+        <div class="content-header">
+            <div>
+                <h1>Mensajes</h1>
+                <p>Comunícate directamente con el coordinador académico</p>
+            </div>
+        </div>
+
+        <div class="messages-container">
+            <!-- Panel izquierdo: Lista de conversaciones -->
+            <div class="conversations-panel">
+                <div class="conversations-header">
+                    <h3>Conversaciones</h3>
+                </div>
+                
+                <div class="conversations-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="conversationSearch" placeholder="Buscar conversación..." 
+                           oninput="searchConversations()">
+                </div>
+                
+                <div class="conversations-list" id="conversationsList">
+                    <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
+                        <i class="fas fa-inbox" style="font-size: 48px; opacity: 0.3; margin-bottom: 15px;"></i>
+                        <p>Cargando conversaciones...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel derecho: Chat activo -->
+            <div class="chat-panel">
+                <div class="chat-header" id="chatHeader" style="display: none;">
+                    <div class="chat-header-info">
+                        <div class="chat-avatar">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <div>
+                            <h4 id="chatInstructorName">Coordinador</h4>
+                            <p id="chatInstructorSubject">Coordinación Académica</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chat-messages" id="chatMessages">
+                    <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                        <i class="fas fa-comment-dots" style="font-size: 64px; margin-bottom: 20px; opacity: 0.3;"></i>
+                        <h3>Selecciona una conversación</h3>
+                        <p>Haz clic en una conversación para comenzar a chatear</p>
+                    </div>
+                </div>
+                
+                <div class="chat-input-area" id="chatInputArea" style="display: none;">
+                    <input type="text" id="messageInput" placeholder="Escribe tu mensaje aquí..." 
+                           maxlength="1000">
+                    <button class="btn btn-primary" onclick="sendMessage()" title="Enviar mensaje">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -462,9 +546,28 @@ if (strlen($iniciales) == 0) {
             </button>
         </div>
     </div>
+
+    <!-- NOTIFICACIONES -->
+    <div id="notifications-section" class="content-section">
+        <div class="content-header">
+            <div>
+                <h1>Notificaciones</h1>
+                <p>Revisa tus notificaciones y alertas del sistema</p>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                    <i class="fa-regular fa-bell-slash" style="font-size: 64px; margin-bottom: 20px; opacity: 0.3;"></i>
+                    <h3>No tienes notificaciones</h3>
+                    <p>Aquí aparecerán tus notificaciones y alertas del sistema</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </main>
 
 <script src="panel.js"></script>
+<script src="menss.js"></script>
 </body>
 </html>
-<?php

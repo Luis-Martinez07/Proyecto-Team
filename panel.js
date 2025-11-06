@@ -726,3 +726,60 @@ function removeAssignment(btn) {
 function exportarPDF() {
     alert('Exportar PDF (próximamente)');
 }
+// AGREGAR AL FINAL DE TU panel.js EXISTENTE
+// O REEMPLAZAR LA FUNCIÓN initMessagesSystem SI YA EXISTE
+
+// ============================================
+// INICIALIZACIÓN DEL SISTEMA DE MENSAJES
+// ============================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Inicializando panel de instructor...');
+    
+    // Inicializar mensajes si menss.js está cargado
+    if (typeof initMessagesSystem === 'function') {
+        console.log('📨 Sistema de mensajes encontrado, inicializando...');
+        initMessagesSystem();
+    } else {
+        console.warn('⚠️ menss.js no está cargado');
+    }
+    
+    // Otras inicializaciones...
+    initTheme();
+    loadSchedules();
+    updateBadges();
+});
+
+// ============================================
+// FUNCIÓN PARA MOSTRAR SECCIÓN DE MENSAJES
+// ============================================
+
+function showMessagesSection() {
+    console.log('📬 Mostrando sección de mensajes');
+    
+    // Cargar conversaciones cuando se abre la sección
+    if (typeof loadConversationsFromAPI === 'function') {
+        loadConversationsFromAPI();
+    }
+}
+
+// ============================================
+// ACTUALIZAR BADGES DE MENSAJES
+// ============================================
+
+function updateBadges() {
+    // Esta función debería ser llamada periódicamente
+    // para actualizar los contadores de mensajes no leídos
+    if (typeof updateMessagesBadge === 'function') {
+        updateMessagesBadge();
+    }
+    
+    if (typeof updateMessagesCounter === 'function') {
+        updateMessagesCounter();
+    }
+}
+
+// Actualizar badges cada 30 segundos
+setInterval(updateBadges, 30000);
+
+console.log('✅ Panel.js con integración de mensajes cargado');
