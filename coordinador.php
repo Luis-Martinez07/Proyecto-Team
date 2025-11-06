@@ -115,7 +115,7 @@ if(strlen($iniciales) == 0) {
         <!-- Navegación Principal -->
         <nav class="sidebar-nav">
             <div class="nav-item active" onclick="showSection('dashboard', event)">
-                <span class="nav-icon"><i class="fa-solid fa-house"></i></span>
+                <span class="nav-icon"><i class="fa-solid fa-house-user"></i></span>
                 <span>Dashboard</span>
             </div>
 

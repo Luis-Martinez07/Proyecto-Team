@@ -16,9 +16,8 @@ console.log(`🔍 Rol detectado: ${userRole}`);
 // ============================================
 
 function initMessagesSystem() {
-    console.log('📨 Inicializando sistema de mensajes...');
+    console.log('🔨 Inicializando sistema de mensajes...');
     
-    // Verificar que los elementos existan
     if (!document.getElementById('conversationsList')) {
         console.error('❌ Elemento conversationsList no encontrado');
         return;
@@ -55,11 +54,9 @@ async function loadConversationsFromAPI() {
         
         console.log('📡 Respuesta recibida, status:', response.status);
         
-        // Leer la respuesta como texto primero
         const responseText = await response.text();
         console.log('📄 Respuesta del servidor:', responseText);
         
-        // Intentar parsear como JSON
         let data;
         try {
             data = JSON.parse(responseText);
@@ -67,7 +64,6 @@ async function loadConversationsFromAPI() {
             console.error('❌ Error parseando JSON:', e);
             console.error('📄 Texto recibido:', responseText.substring(0, 500));
             
-            // Si no es JSON, mostrar error al usuario
             const container = document.getElementById('conversationsList');
             if (container) {
                 container.innerHTML = `
@@ -125,6 +121,7 @@ async function loadConversationsFromAPI() {
         }
     }
 }
+
 // ============================================
 // CARGAR MENSAJES DE UNA CONVERSACIÓN
 // ============================================
@@ -162,23 +159,34 @@ async function loadMessages(conversacion_id) {
                 return;
             }
             
+            // IMPORTANTE: Eliminar duplicados por ID antes de asignar
+            const mensajesUnicos = [];
+            const idsVistos = new Set();
+            
+            data.mensajes.forEach(m => {
+                if (!idsVistos.has(m.id)) {
+                    idsVistos.add(m.id);
+                    mensajesUnicos.push({
+                        id: m.id,
+                        sender: m.es_propio ? userRole : (userRole === 'coordinador' ? 'instructor' : 'coordinador'),
+                        text: m.mensaje,
+                        timestamp: m.fecha_envio,
+                        read: m.leido
+                    });
+                }
+            });
+            
             currentConversation = {
                 id: conversacion_id,
                 instructor: conv.instructor,
-                messages: data.mensajes.map(m => ({
-                    id: m.id,
-                    sender: m.es_propio ? userRole : (userRole === 'coordinador' ? 'instructor' : 'coordinador'),
-                    text: m.mensaje,
-                    timestamp: m.fecha_envio,
-                    read: m.leido
-                }))
+                messages: mensajesUnicos
             };
 
             await markAsRead(conversacion_id);
             displayChatMessages();
             displayConversationsList();
             
-            console.log(`✅ ${currentConversation.messages.length} mensajes cargados`);
+            console.log(`✅ ${currentConversation.messages.length} mensajes únicos cargados`);
         } else {
             console.error('❌ Error:', data.error);
         }
@@ -203,7 +211,6 @@ async function markAsRead(conversacion_id) {
             body: JSON.stringify({ conversacion_id })
         });
         
-        // Actualizar contador local
         const conv = conversations.find(c => c.id === conversacion_id);
         if (conv) {
             conv.unread = 0;
@@ -236,7 +243,6 @@ async function sendMessage() {
         return;
     }
 
-    // Deshabilitar input mientras se envía
     input.disabled = true;
 
     try {
@@ -365,18 +371,15 @@ async function startNewConversation(instructor_id) {
     try {
         console.log('💬 Iniciando conversación con instructor:', instructor_id);
         
-        // Verificar si ya existe conversación
         const existingConv = conversations.find(c => c.instructor.id === instructor_id);
         
         if (existingConv) {
-            // Abrir conversación existente
             const index = conversations.indexOf(existingConv);
             openConversation(index);
             alert('Conversación abierta');
             return;
         }
 
-        // Crear nueva conversación
         const response = await fetch(`${API_URL}?accion=crear_conversacion`, {
             method: 'POST',
             credentials: 'include',
@@ -430,7 +433,6 @@ function openConversation(index) {
 
     console.log(`📬 Abriendo conversación con: ${conv.instructor.name}`);
 
-    // Resetear conversación actual
     currentConversation = null;
     
     const chatHeader = document.getElementById('chatHeader');
@@ -439,11 +441,9 @@ function openConversation(index) {
     if (chatHeader) chatHeader.style.display = 'none';
     if (chatInputArea) chatInputArea.style.display = 'none';
 
-    // Cargar mensajes
     loadMessages(conv.id);
     displayConversationsList();
     
-    // Cerrar sidebar en móvil
     if (window.innerWidth <= 768) {
         const sidebar = document.getElementById('sidebar');
         if (sidebar) sidebar.classList.remove('open');
@@ -525,18 +525,33 @@ function searchConversations() {
 // POLLING AUTOMÁTICO
 // ============================================
 
+let lastMessageCount = 0; // Variable para controlar cambios
+
 function startPolling() {
     setInterval(async () => {
-        // Solo hacer polling si la sección de mensajes está activa
         const messagesSection = document.getElementById('messages-section');
         const isMessagesActive = messagesSection && messagesSection.classList.contains('active');
         
-        if (currentConversation && isMessagesActive) {
-            await loadMessages(currentConversation.id);
-        }
-        
+        // Recargar lista de conversaciones (para badges)
         await loadConversationsFromAPI();
-    }, 10000); // Cada 10 segundos
+        
+        // Solo recargar mensajes si hay una conversación activa Y la sección está visible
+        if (currentConversation && isMessagesActive) {
+            const prevMessageCount = currentConversation.messages.length;
+            await loadMessages(currentConversation.id);
+            
+            // Solo hacer scroll si hay mensajes nuevos
+            const newMessageCount = currentConversation.messages.length;
+            if (newMessageCount > prevMessageCount) {
+                const container = document.getElementById('chatMessages');
+                if (container) {
+                    setTimeout(() => {
+                        container.scrollTop = container.scrollHeight;
+                    }, 100);
+                }
+            }
+        }
+    }, 10000);
     
     console.log('🔄 Polling iniciado (cada 10s)');
 }
@@ -621,7 +636,6 @@ function displayChatMessages() {
         return;
     }
 
-    // Mostrar header y área de input
     if (header) header.style.display = 'flex';
     if (inputArea) inputArea.style.display = 'flex';
     
@@ -636,7 +650,9 @@ function displayChatMessages() {
     const subjectElement = document.getElementById('chatInstructorSubject');
     if (subjectElement) subjectElement.textContent = displaySubject;
 
-    // Renderizar mensajes
+    const scrollPos = container.scrollTop;
+    const isAtBottom = container.scrollHeight - container.clientHeight <= scrollPos + 50;
+
     let html = '';
     
     if (currentConversation.messages.length === 0) {
@@ -647,11 +663,21 @@ function displayChatMessages() {
                 <p style="font-size: 12px;">Escribe el primer mensaje para iniciar la conversación</p>
             </div>`;
     } else {
+        const uniqueMessages = [];
+        const seenIds = new Set();
+        
         currentConversation.messages.forEach(msg => {
+            if (!seenIds.has(msg.id)) {
+                seenIds.add(msg.id);
+                uniqueMessages.push(msg);
+            }
+        });
+        
+        uniqueMessages.forEach(msg => {
             const isSent = msg.sender === userRole;
             
             html += `
-                <div class="message ${isSent ? 'sent' : 'received'}">
+                <div class="message ${isSent ? 'sent' : 'received'}" data-message-id="${msg.id}">
                     <div class="message-content">
                         <p>${escapeHtml(msg.text)}</p>
                         <span class="message-time">${formatTime(msg.timestamp)}</span>
@@ -660,12 +686,18 @@ function displayChatMessages() {
         });
     }
     
-    container.innerHTML = html;
+    const currentHTML = container.innerHTML.trim();
+    const newHTML = html.trim();
     
-    // Scroll al final
-    setTimeout(() => {
-        container.scrollTop = container.scrollHeight;
-    }, 100);
+    if (currentHTML !== newHTML) {
+        container.innerHTML = html;
+        
+        if (isAtBottom || currentConversation.messages.length === 1) {
+            setTimeout(() => {
+                container.scrollTop = container.scrollHeight;
+            }, 50);
+        }
+    }
 }
 
 // ============================================
@@ -753,16 +785,13 @@ function formatTime(timestamp) {
     const now = new Date();
     const diff = now - date;
 
-    // Hace menos de 1 minuto
     if (diff < 60000) return 'Ahora';
     
-    // Hace menos de 1 hora
     if (diff < 3600000) {
         const minutes = Math.floor(diff / 60000);
         return `Hace ${minutes} min`;
     }
     
-    // Hoy
     if (date.toDateString() === now.toDateString()) {
         return date.toLocaleTimeString('es-ES', { 
             hour: '2-digit', 
@@ -770,14 +799,12 @@ function formatTime(timestamp) {
         });
     }
     
-    // Ayer
     const yesterday = new Date(now);
     yesterday.setDate(yesterday.getDate() - 1);
     if (date.toDateString() === yesterday.toDateString()) {
         return 'Ayer';
     }
     
-    // Fecha completa
     return date.toLocaleDateString('es-ES', { 
         day: '2-digit', 
         month: '2-digit',
@@ -815,7 +842,6 @@ function closeModal(modalId) {
 // AUTO-INICIALIZACIÓN
 // ============================================
 
-// Esperar a que el DOM esté completamente cargado
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         console.log('🚀 DOM cargado, inicializando sistema de mensajes...');
@@ -824,7 +850,6 @@ if (document.readyState === 'loading') {
         }, 500);
     });
 } else {
-    // El DOM ya está cargado
     console.log('🚀 DOM ya cargado, inicializando sistema de mensajes...');
     setTimeout(() => {
         initMessagesSystem();

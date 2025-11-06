@@ -88,15 +88,31 @@ try {
             $check->execute([$conversacion_id, $usuario_id, $usuario_id]);
             if ($check->rowCount() === 0) throw new Exception('Sin acceso');
 
-            $sql = "SELECT id, remitente_id, mensaje, leido, fecha_envio, (remitente_id = ?) AS es_propio
-                    FROM mensajes WHERE conversacion_id = ? ORDER BY fecha_envio ASC";
+            // CORRECCIÓN: Usar DISTINCT y GROUP BY para evitar duplicados
+            $sql = "SELECT DISTINCT m.id, m.remitente_id, m.mensaje, m.leido, m.fecha_envio, 
+                    (m.remitente_id = ?) AS es_propio
+                    FROM mensajes m
+                    WHERE m.conversacion_id = ? 
+                    GROUP BY m.id
+                    ORDER BY m.fecha_envio ASC, m.id ASC";
+            
             $stmt = $pdo->prepare($sql);
             $stmt->execute([$usuario_id, $conversacion_id]);
+            
             $mensajes = [];
+            $idsVistos = []; // Array para verificar duplicados en PHP también
 
             while ($row = $stmt->fetch()) {
+                $messageId = (int)$row['id'];
+                
+                // Verificación adicional en PHP para evitar duplicados
+                if (in_array($messageId, $idsVistos)) {
+                    continue;
+                }
+                $idsVistos[] = $messageId;
+                
                 $mensajes[] = [
-                    'id' => (int)$row['id'],
+                    'id' => $messageId,
                     'es_propio' => (bool)$row['es_propio'],
                     'mensaje' => $row['mensaje'],
                     'leido' => (bool)$row['leido'],
@@ -104,10 +120,28 @@ try {
                 ];
             }
 
+            // Marcar como leídos
             $pdo->prepare("UPDATE mensajes SET leido = 1 WHERE conversacion_id = ? AND remitente_id != ?")
                 ->execute([$conversacion_id, $usuario_id]);
 
             sendJSON(['success' => true, 'mensajes' => $mensajes]);
+            break;
+
+        // === MARCAR COMO LEÍDOS ===
+        case 'marcar_leidos':
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') throw new Exception('Método no permitido');
+            $input = json_decode(file_get_contents('php://input'), true);
+            $conversacion_id = (int)($input['conversacion_id'] ?? 0);
+            if (!$conversacion_id) throw new Exception('ID inválido');
+
+            $check = $pdo->prepare("SELECT id FROM conversaciones WHERE id = ? AND (coordinador_id = ? OR instructor_id = ?)");
+            $check->execute([$conversacion_id, $usuario_id, $usuario_id]);
+            if ($check->rowCount() === 0) throw new Exception('Sin acceso');
+
+            $stmt = $pdo->prepare("UPDATE mensajes SET leido = 1 WHERE conversacion_id = ? AND remitente_id != ?");
+            $stmt->execute([$conversacion_id, $usuario_id]);
+
+            sendJSON(['success' => true]);
             break;
 
         // === ENVIAR MENSAJE ===
@@ -128,7 +162,7 @@ try {
             $pdo->prepare("UPDATE conversaciones SET ultima_actualizacion = NOW() WHERE id = ?")
                 ->execute([$conversacion_id]);
 
-            sendJSON(['success' => true]);
+            sendJSON(['success' => true, 'mensaje_id' => (int)$pdo->lastInsertId()]);
             break;
 
         // === CREAR CONVERSACIÓN ===
@@ -138,13 +172,18 @@ try {
             $instructor_id = (int)($input['instructor_id'] ?? 0);
             if (!$instructor_id) throw new Exception('ID inválido');
 
-            $check = $pdo->prepare("SELECT id FROM conversaciones WHERE coordinador_id = ? AND instructor_id = ? AND estado = 'activa'");
+            // Buscar cualquier conversación (activa o archivada)
+            $check = $pdo->prepare("SELECT id FROM conversaciones WHERE coordinador_id = ? AND instructor_id = ?");
             $check->execute([$usuario_id, $instructor_id]);
             $result = $check->fetch();
 
             if ($result) {
+                // Reactivar si estaba archivada
+                $stmt = $pdo->prepare("UPDATE conversaciones SET estado = 'activa', ultima_actualizacion = NOW() WHERE id = ?");
+                $stmt->execute([$result['id']]);
                 sendJSON(['success' => true, 'conversacion_id' => (int)$result['id']]);
             } else {
+                // Crear nueva
                 $stmt = $pdo->prepare("INSERT INTO conversaciones (coordinador_id, instructor_id) VALUES (?, ?)");
                 $stmt->execute([$usuario_id, $instructor_id]);
                 sendJSON(['success' => true, 'conversacion_id' => (int)$pdo->lastInsertId()]);
