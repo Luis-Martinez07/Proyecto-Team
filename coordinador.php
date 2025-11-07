@@ -302,7 +302,7 @@ if(strlen($iniciales) == 0) {
                     <div class="chat-input-area" id="chatInputArea" style="display: none;">
                         <input type="text" id="messageInput" placeholder="Escribe un mensaje...">
                         <button class="btn btn-primary" onclick="sendMessage()">
-                            <i class="fas fa-paper-plane"></i>
+                            <i class="fa-regular fa-paper-plane"></i>
                         </button>
                     </div>
                 </div>
@@ -557,7 +557,7 @@ if(strlen($iniciales) == 0) {
     <div id="newMessageModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal('newMessageModal')">&times;</span>
-            <h2 style="margin-bottom: 20px;"><i class="fas fa-user-plus"></i> Nueva Conversación</h2>
+            <h2 style="margin-bottom: 20px;"> Nueva Conversación</h2>
             <div id="newMessageModalContent"></div>
         </div>
     </div>

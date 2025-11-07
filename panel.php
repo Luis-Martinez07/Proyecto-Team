@@ -108,12 +108,6 @@ if (strlen($iniciales) == 0) {
             <span>Mensajes</span>
             <span class="nav-badge" id="messageBadge" style="display: none;">0</span>
         </div>
-
-        <div class="nav-item" onclick="showSection('notifications')">
-            <span class="nav-icon"><i class="fa-regular fa-bell"></i></span>
-            <span>Notificaciones</span>
-            <span class="nav-badge" id="notificationBadge" style="display: none;">0</span>
-        </div>
     </nav>
 
     <div class="sidebar-footer">
@@ -373,7 +367,7 @@ if (strlen($iniciales) == 0) {
                     <input type="text" id="messageInput" placeholder="Escribe tu mensaje aquí..." 
                            maxlength="1000">
                     <button class="btn btn-primary" onclick="sendMessage()" title="Enviar mensaje">
-                        <i class="fas fa-paper-plane"></i>
+                        <i class="fa-regular fa-paper-plane"></i>
                     </button>
                 </div>
             </div>
@@ -548,23 +542,6 @@ if (strlen($iniciales) == 0) {
     </div>
 
     <!-- NOTIFICACIONES -->
-    <div id="notifications-section" class="content-section">
-        <div class="content-header">
-            <div>
-                <h1>Notificaciones</h1>
-                <p>Revisa tus notificaciones y alertas del sistema</p>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-body">
-                <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
-                    <i class="fa-regular fa-bell-slash" style="font-size: 64px; margin-bottom: 20px; opacity: 0.3;"></i>
-                    <h3>No tienes notificaciones</h3>
-                    <p>Aquí aparecerán tus notificaciones y alertas del sistema</p>
-                </div>
-            </div>
-        </div>
-    </div>
 </main>
 
 <script src="panel.js"></script>
