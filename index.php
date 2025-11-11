@@ -1,14 +1,18 @@
 <?php
-session_start();
+// Mostrar todos los errores en pantalla (solo para desarrollo)
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// index.php
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="public/css/index.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <title>Login</title>
+    <title>Login - SENA Horarios</title>
 </head>
 <body>
 <div class="theme-toggle" onclick="toggleTheme()">
@@ -29,7 +33,6 @@ session_start();
         <?php endif; ?>
     </div>
     <script>
-        // Mostrar el mensaje por 3 segundos y luego limpiarlo
         setTimeout(function() {
             const mensaje = document.querySelector('.mensaje');
             if (mensaje) {
@@ -47,14 +50,14 @@ session_start();
             }
         }, 3000);
     </script>
-<?php endif; ?>
+    <?php endif; ?>
 
     <!-- Login Form -->
     <div class="form-container login">
         <h2>Login</h2>
         <p>¡Bienvenido de nuevo! Inicia sesión en tu cuenta.</p>
         
-        <form id="loginForm" action="auth.php" method="POST">
+        <form id="loginForm" action="controllers/auth.php" method="POST">
             <input type="hidden" name="accion" value="login">
             
             <div class="input-group">
@@ -76,7 +79,7 @@ session_start();
                 </div>
             </div>
             <div class="forgot-password">
-                <a href="reset_password.php">¿Olvidaste tu contraseña?</a>
+                <a href="views/reset_password.php">¿Olvidaste tu contraseña?</a>
             </div>
         </form>
     </div>
@@ -86,7 +89,7 @@ session_start();
         <h2>Crear Cuenta</h2>
         <p>Regístrate para comenzar.</p>
         
-        <form id="registerForm" action="auth.php" method="POST">
+        <form id="registerForm" action="controllers/auth.php" method="POST">
             <input type="hidden" name="accion" value="registro">
             
             <div class="input-group">
@@ -100,8 +103,8 @@ session_start();
             </div>
             
             <div class="input-group">
-                <input type="password" name="password" id="registerPassword" placeholder="Contraseña (mín. 8 caracteres)" required>
-              <i class="fa-regular fa-eye"></i>
+                <input type="password" name="password" id="registerPassword" placeholder="Contraseña (mín. 8 caracteres)" required minlength="8">
+                <i class="fa-regular fa-eye"></i>
             </div>
             
             <button type="submit" class="btn-primary">Crear cuenta</button>
@@ -124,6 +127,7 @@ session_start();
         </div>
     </div>
 </div>
-<script src="form.js"></script>
+
+<script src="Js/form.js"></script>
 </body>
 </html>

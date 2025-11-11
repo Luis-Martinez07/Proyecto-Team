@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'config.php';
+require_once '../config/config.php';
 
 // Verificar que el usuario esté logueado y sea instructor
 if (!isset($_SESSION['usuario_id']) || strtolower(trim($_SESSION['usuario_rol'] ?? '')) !== 'instructor') {

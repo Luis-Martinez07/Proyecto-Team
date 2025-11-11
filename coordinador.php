@@ -3,7 +3,7 @@ session_start();
 
 // Verificar que esté logueado
 if (!isset($_SESSION['usuario_id'])) {
-    header('Location: index.php?tipo=error&mensaje=' . urlencode('Debes iniciar sesión'));
+    header('Location: ../index.php?tipo=error&mensaje=' . urlencode('Debes iniciar sesión'));
     exit;
 }
 
@@ -11,7 +11,7 @@ if (!isset($_SESSION['usuario_id'])) {
 $rol_usuario = strtolower(trim($_SESSION['usuario_rol'] ?? ''));
 
 if ($rol_usuario !== 'coordinador') {
-    header('Location: panel.php?tipo=error&mensaje=' . urlencode('No tienes permisos para acceder a esta sección'));
+    header('Location: ../php/panel.php?tipo=error&mensaje=' . urlencode('No tienes permisos para acceder a esta sección'));
     exit;
 }
 
@@ -23,7 +23,7 @@ $usuario_rol = $_SESSION['usuario_rol'];
 // Manejar logout
 if (isset($_GET['logout'])) {
     session_destroy();
-    header('Location: index.php?tipo=exito&mensaje=' . urlencode('Sesión cerrada exitosamente'));
+    header('Location: ../index.php?tipo=exito&mensaje=' . urlencode('Sesión cerrada exitosamente'));
     exit;
 }
 
@@ -43,8 +43,8 @@ if(strlen($iniciales) == 0) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="cord.css">
-    <link rel="stylesheet" href="mens.css">
+    <link rel="stylesheet" href="public/css/cord.css">
+    <link rel="stylesheet" href="public/css/mens.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <title>Panel Coordinador - <?php echo htmlspecialchars($usuario_nombre); ?></title>
     <style>
@@ -562,8 +562,8 @@ if(strlen($iniciales) == 0) {
         </div>
     </div>
 
-    <script src="cord.js"></script>
-    <script src="menss.js"></script>
+    <script src="js/cord.js"></script>
+    <script src="js/menss.js"></script>
     <script>
         // Mostrar mensaje de bienvenida al iniciar sesión
         document.addEventListener('DOMContentLoaded', function() {

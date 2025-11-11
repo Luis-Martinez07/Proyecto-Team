@@ -9,7 +9,7 @@ if (!isset($_SESSION['usuario_id'])) {
 }
 
 // Incluir archivo de configuración
-require_once 'config.php';
+require_once '../config/config.php';
 
 try {
     // Obtener conexión

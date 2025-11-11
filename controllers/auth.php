@@ -1,10 +1,10 @@
 <?php
 session_start();
-require_once 'config.php';
+require_once '../config/config.php';
 
 // Solo permitir POST
 if ($_SERVER['REQUEST_METHOD'] != 'POST') {
-    header('Location: index.php?tipo=error&mensaje=' . urlencode('Acceso no permitido'));
+    header('Location: ../index.php?tipo=error&mensaje=' . urlencode('Acceso no permitido'));
     exit;
 }
 
@@ -15,7 +15,7 @@ if ($accion == 'registro') {
 } elseif ($accion == 'login') {
     iniciarSesion();
 } else {
-    header('Location: index.php?tipo=error&mensaje=' . urlencode('Acción no válida'));
+    header('Location: ../index.php?tipo=error&mensaje=' . urlencode('Acción no válida'));
     exit;
 }
 
@@ -61,14 +61,17 @@ function registrarUsuario() {
         $password_hash = password_hash($password, PASSWORD_BCRYPT);
         
         // Insertar usuario con rol por defecto 'instructor'
-        $stmt = $pdo->prepare("INSERT INTO usuarios (nombre, email, password, rol, fecha_registro, activo) VALUES (?, ?, ?, 'instructor', NOW(), 1)");
+        $stmt = $pdo->prepare("
+            INSERT INTO usuarios (nombre, email, password, rol, fecha_registro, activo)
+            VALUES (?, ?, ?, 'instructor', NOW(), 1)
+        ");
         $stmt->execute([$nombre, $email, $password_hash]);
         
         redirigirConMensaje('exito', 'Usuario registrado exitosamente. Ya puedes iniciar sesión.');
         
     } catch (PDOException $e) {
         error_log("Error en registro: " . $e->getMessage());
-        redirigirConMensaje('error', 'Error al registrar usuario: ' . $e->getMessage());
+        redirigirConMensaje('error', 'Error al registrar usuario. Intenta nuevamente.');
     }
 }
 
@@ -90,12 +93,15 @@ function iniciarSesion() {
     try {
         $pdo = conectarDB();
         
-        // Buscar usuario activo - IMPORTANTE: usar TRIM en rol
-        $stmt = $pdo->prepare("SELECT id, nombre, email, password, TRIM(rol) as rol FROM usuarios WHERE email = ? AND activo = 1");
+        // Buscar usuario activo
+        $stmt = $pdo->prepare("
+            SELECT id, nombre, email, password, TRIM(rol) as rol
+            FROM usuarios
+            WHERE email = ? AND activo = 1
+        ");
         $stmt->execute([$email]);
         $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        // Verificar si el usuario existe
         if (!$usuario) {
             redirigirConMensaje('error', 'Credenciales incorrectas o usuario inactivo');
             return;
@@ -107,12 +113,10 @@ function iniciarSesion() {
             return;
         }
         
-        // Limpiar y normalizar el rol
         $rol_limpio = strtolower(trim($usuario['rol']));
         
         // Crear sesión
         session_regenerate_id(true);
-        
         $_SESSION['usuario_id'] = $usuario['id'];
         $_SESSION['usuario_nombre'] = $usuario['nombre'];
         $_SESSION['usuario_email'] = $usuario['email'];
@@ -122,20 +126,18 @@ function iniciarSesion() {
         // Actualizar último acceso
         $stmt = $pdo->prepare("UPDATE usuarios SET ultimo_acceso = NOW() WHERE id = ?");
         $stmt->execute([$usuario['id']]);
-        
-        // Redirigir según el rol
-        if ($rol_limpio === 'coordinador') {
-            header('Location: coordinador.php?fromLogin=true');
-            exit;
-        } elseif ($rol_limpio === 'instructor') {
-            header('Location: panel.php?fromLogin=true');
-            exit;
-        } else {
-            // Rol no reconocido - por defecto a instructor
-            redirigirConMensaje('advertencia', 'Rol no reconocido, redirigiendo a panel de instructor');
-            header('Location: panel.php?fromLogin=true');
-            exit;
-        }
+       
+       // Redirigir según el rol
+if ($rol_limpio === 'coordinador') {
+    header('Location: ../coordinador.php?fromLogin=true');
+    exit;
+} elseif ($rol_limpio === 'instructor') {
+    header('Location: ../panel.php?fromLogin=true');
+    exit;
+} else {
+    redirigirConMensaje('error', 'Rol de usuario no reconocido.');
+}
+
         
     } catch (PDOException $e) {
         error_log("Error en login: " . $e->getMessage());
@@ -144,7 +146,7 @@ function iniciarSesion() {
 }
 
 function redirigirConMensaje($tipo, $mensaje) {
-    header('Location: index.php?tipo=' . $tipo . '&mensaje=' . urlencode($mensaje));
+    header('Location: ../index.php?tipo=' . $tipo . '&mensaje=' . urlencode($mensaje));
     exit;
 }
 ?>

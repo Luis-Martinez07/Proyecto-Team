@@ -10,7 +10,7 @@ header('Access-Control-Allow-Headers: Content-Type');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') exit;
 
 // === CONEXIÓN DB ===
-require_once 'config.php';
+require_once 'config/config.php';;
 try { $pdo = conectarDB(); } catch (Exception $e) { die(json_encode(['success'=>false,'error'=>'DB'])); }
 
 // === SESIÓN ===

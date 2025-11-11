@@ -7,7 +7,7 @@ if (!isset($_SESSION['usuario_id'])) {
     exit;
 }
 
-require_once 'config.php';
+require_once '../config/config.php';
 
 try {
     $pdo = conectarDB();

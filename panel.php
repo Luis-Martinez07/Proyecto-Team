@@ -47,9 +47,9 @@ if (strlen($iniciales) == 0) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="panel.css">
-    <link rel="stylesheet" href="select.css">
-    <link rel="stylesheet" href="mens.css">
+    <link rel="stylesheet" href="public/css/panel.css">
+    <link rel="stylesheet" href="public/css/select.css">
+    <link rel="stylesheet" href="public/css/mens.css">
     <title>Panel Instructor</title>
 </head>
 <body>
@@ -544,7 +544,7 @@ if (strlen($iniciales) == 0) {
     <!-- NOTIFICACIONES -->
 </main>
 
-<script src="panel.js"></script>
-<script src="menss.js"></script>
+<script src="js/panel.js"></script>
+<script src="js/menss.js"></script>
 </body>
 </html>
